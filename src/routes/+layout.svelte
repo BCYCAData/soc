@@ -1,9 +1,11 @@
 <script>
+	import { invalidate } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import Footer from '$components/page/Footer.svelte';
 	import Navbar from '$components/page/navigation/Navbar.svelte';
 	import '../app.postcss';
-	import { onMount } from 'svelte';
-
+	export let data;
+	$: ({ session, supabase } = data);
 	let isDarkMode = false;
 
 	onMount(() => {
@@ -12,7 +14,6 @@
 			isDarkMode = true;
 			document.documentElement.classList.add('dark');
 		}
-
 		// Listen for changes in color scheme preference
 		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
 			isDarkMode = e.matches;
@@ -22,45 +23,25 @@
 				document.documentElement.classList.remove('dark');
 			}
 		});
+		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+			if (newSession?.expires_at !== session?.expires_at) {
+				invalidate('supabase:auth');
+			}
+		});
+		return () => data.subscription.unsubscribe();
 	});
 </script>
 
-<div class="app-container">
+<div class="app-container flex h-screen flex-col">
 	<Navbar />
-
-	<main>
+	<main class="flex-1 overflow-y-auto">
 		<slot />
 	</main>
-
 	<Footer />
 </div>
 
 <style lang="postcss">
 	:global(html, body) {
 		@apply m-0 h-full p-0;
-	}
-
-	.app-container {
-		@apply flex min-h-full flex-col;
-	}
-
-	.fixed-header {
-		@apply fixed left-0 right-0 top-0 z-10 bg-surface-100 dark:bg-surface-800;
-	}
-
-	.fixed-header nav {
-		@apply flex items-center justify-between;
-	}
-
-	.fixed-header ul {
-		@apply m-0 flex list-none gap-4 p-0;
-	}
-
-	main {
-		@apply mb-16 mt-16 flex-grow p-4; /* Adjust mt-16 and mb-16 based on your header/footer height */
-	}
-
-	.fixed-footer {
-		@apply fixed bottom-0 left-0 right-0 bg-primary-600 p-4 text-center dark:bg-surface-800;
 	}
 </style>
