@@ -25,6 +25,22 @@
 
 	const baseUrl = `https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=${env.PUBLIC_MAPTILER_KEY}`;
 	const baseAttribution = `\u003ca href="https://www.maptiler.com/copyright/" target="_blank"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href="https://www.openstreetmap.org/copyright" target="_blank"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e \u003ca href="https://www.spatial.nsw.gov.au" target="_blank"\u003e\u0026copy; Spatial Services NSW \u003c/a\u003e`;
+
+	const projectAddresspointsOptions: L.CircleMarkerOptions = {
+		color: '#a5a5a5',
+		weight: 0,
+		radius: 3,
+		fillOpacity: 0.8
+	};
+
+	const registeredAddresspointsOptions: L.CircleMarkerOptions = {
+		fillColor: '#f97316',
+		radius: 4,
+		color: '#000',
+		weight: 1,
+		opacity: 1,
+		fillOpacity: 0.8
+	};
 </script>
 
 <svelte:head>
@@ -84,21 +100,15 @@
 						<LeafletGeoJSONPointLayer
 							data={projectAddressPoints.allAddresspoints}
 							name="Project Address Points"
-						>
-							{#await import('$components/map/leaflet/layers/geojson/LeafletGeoJSONPointLayerOptions.svelte') then { default: LeafletGeoJSONPointLayerOptions }}
-								<LeafletGeoJSONPointLayerOptions color="red" radius={8} />
-							{/await}
-						</LeafletGeoJSONPointLayer>
-					{/await}
-					{#await import('$components/map/leaflet/layers/geojson/LeafletGeoJSONPointLayer.svelte') then { default: LeafletGeoJSONPointLayer }}
+							pointToLayerFunctionName="createCircleMarker"
+							styleOptions={projectAddresspointsOptions}
+						/>
 						<LeafletGeoJSONPointLayer
 							data={projectAddressPoints.registeredAddresspoints}
 							name="Registered Address Points"
-						>
-							{#await import('$components/map/leaflet/layers/geojson/LeafletGeoJSONPointLayerOptions.svelte') then { default: LeafletGeoJSONPointLayerOptions }}
-								<LeafletGeoJSONPointLayerOptions color="green" radius={8} />
-							{/await}
-						</LeafletGeoJSONPointLayer>
+							pointToLayerFunctionName="createCircleMarker"
+							styleOptions={registeredAddresspointsOptions}
+						/>
 					{/await}
 					{#await import('$components/map/leaflet/controls/LeafletScaleControl.svelte') then { default: LeafletScaleControl }}
 						<LeafletScaleControl position="bottomleft" />

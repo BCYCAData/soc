@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { onMount, onDestroy, setContext } from 'svelte';
-	import { writable, type Writable } from 'svelte/store';
+	import { setContext } from 'svelte';
+	import { browser } from '$app/environment';
 
 	import LeafletLegendControl from './controls/LeafletLegendControl.svelte';
 
 	import type L from 'leaflet';
-	import 'leaflet/dist/leaflet.css';
-	// import './custom.css';
 
 	// Props
 	interface Props {
@@ -62,90 +60,106 @@
 	let leaflet: typeof L | undefined = $state();
 	let leafletMap: L.Map | undefined = $state();
 	let mapDiv: HTMLDivElement | undefined = $state();
+	let layersList: Record<string, L.Layer> = $state({});
+	let layersOptionsList: Record<string, L.GeoJSONOptions> = $state({});
 
-	// Stores for Leaflet and map instance
-	const leafletStore: Writable<typeof L | null> = writable(null);
-	const mapStore: Writable<L.Map | null> = writable(null);
-	const layersStore: Writable<Record<string, L.Layer>> = writable({});
-
-	// Set context for child components
-	setContext('leaflet', {
+	setContext('leafletContext', {
 		getLeaflet: () => leaflet,
-		leafletStore
-	});
-
-	setContext('leafletMap', {
 		getLeafletMap: () => leafletMap,
-		mapStore
+		getLeafletLayers: () => layersList,
+		updateLayersList,
+		updateLayersOptionsList
 	});
-
-	setContext('layersStore', layersStore);
 
 	let layersControlInstance: L.Control.Layers;
 
-	onMount(async () => {
-		leaflet = await import('leaflet');
-		leafletStore.set(leaflet);
+	$inspect(layersList);
 
-		if (mapDiv && leaflet) {
-			leafletMap = leaflet
-				.map(mapDiv, {
-					minZoom,
-					maxZoom,
-					zoomSnap,
-					zoomDelta,
-					boxZoom,
-					doubleClickZoom,
-					touchZoom,
-					scrollWheelZoom,
-					dragging,
-					keyboard,
-					zoomControl,
-					attributionControl
-				})
-				.setView(centre, zoom);
+	if (Object.keys(layersOptionsList).length > 0) {
+		$inspect(layersOptionsList);
+	}
 
-			if (layersControl && leafletMap) {
-				layersControlInstance = leaflet.control.layers().addTo(leafletMap);
+	$effect(() => {
+		if (browser && mapDiv) {
+			import('leaflet').then((module) => {
+				leaflet = module.default;
+				if (leaflet && mapDiv) {
+					leafletMap = leaflet
+						.map(mapDiv, {
+							minZoom,
+							maxZoom,
+							zoomSnap,
+							zoomDelta,
+							boxZoom,
+							doubleClickZoom,
+							touchZoom,
+							scrollWheelZoom,
+							dragging,
+							keyboard,
+							zoomControl,
+							attributionControl
+						})
+						.setView(centre, zoom);
 
-				layersStore.subscribe((layers) => {
-					if (layersControlInstance && leaflet && leafletMap) {
-						layersControlInstance.remove();
+					if (layersControl && leafletMap) {
 						layersControlInstance = leaflet.control.layers().addTo(leafletMap);
 
-						Object.entries(layers).forEach(([name, layer]) => {
-							layersControlInstance.addOverlay(layer, name);
+						$effect(() => {
+							if (layersControlInstance && leaflet && leafletMap) {
+								layersControlInstance.remove();
+								layersControlInstance = leaflet.control.layers().addTo(leafletMap);
+
+								Object.entries(layersList).forEach(([name, layer]) => {
+									layersControlInstance.addOverlay(layer, name);
+								});
+							}
 						});
 					}
-				});
-			}
 
-			mapStore.set(leafletMap);
+					// Event listeners
+					leafletMap.on('zoomend', () => {
+						zoom = leafletMap?.getZoom() ?? zoom;
+					});
 
-			// Event listeners
-			leafletMap.on('zoomend', () => {
-				zoom = leafletMap?.getZoom() ?? zoom;
+					leafletMap.on('moveend', () => {
+						centre = leafletMap?.getCenter() ?? centre;
+					});
+				}
 			});
 
-			leafletMap.on('moveend', () => {
-				centre = leafletMap?.getCenter() ?? centre;
-			});
+			return () => {
+				if (leafletMap) {
+					leafletMap.remove();
+				}
+				if (layersControlInstance) {
+					layersControlInstance.remove();
+				}
+			};
 		}
-	});
-
-	onDestroy(() => {
-		if (leafletMap) {
-			leafletMap.remove();
-			mapStore.set(null);
-		}
-		if (layersControlInstance) {
-			layersControlInstance.remove();
-			layersStore.set({});
-		}
-		leafletStore.set(null);
 	});
 
 	// Methods
+
+	function updateLayersList(layerName: string, layer: L.Layer | null) {
+		if (layer) {
+			layersList[layerName] = layer;
+		} else {
+			if (layerName in layersList) {
+				delete layersList[layerName];
+			}
+		}
+	}
+
+	function updateLayersOptionsList(layerName: string, layerOptions: L.GeoJSONOptions | null) {
+		if (layerOptions) {
+			layersOptionsList[layerName] = layerOptions;
+		} else {
+			if (layerName in layersOptionsList) {
+				delete layersOptionsList[layerName];
+			}
+		}
+	}
+
 	export function getCenter() {
 		return leafletMap?.getCenter();
 	}

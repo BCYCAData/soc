@@ -1,4 +1,5 @@
-import L from 'leaflet';
+import Control from 'leaflet';
+import type L from 'leaflet';
 
 interface LegendItem {
 	name: string;
@@ -6,17 +7,19 @@ interface LegendItem {
 	visible: boolean;
 }
 
-export class LegendControl extends L.Control {
+export class LegendControl extends Control.Control {
 	private div!: HTMLElement;
 	private legendItems: LegendItem[];
+	private leaflet: typeof L;
 
-	constructor(options?: L.ControlOptions) {
+	constructor(leaflet: typeof L, options?: L.ControlOptions) {
 		super(options);
+		this.leaflet = leaflet;
 		this.legendItems = [];
 	}
 
 	onAdd(map: L.Map): HTMLElement {
-		this.div = L.DomUtil.create('div', 'info legend');
+		this.div = this.leaflet.DomUtil.create('div', 'info legend');
 		this.update();
 		return this.div;
 	}

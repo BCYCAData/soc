@@ -11,18 +11,23 @@
 
 	let { url, attribution, layerOptions = {} }: Props = $props();
 
-	const leaflet = (getContext('leaflet') as { getLeaflet: () => typeof L }).getLeaflet();
-	const leafletMap = (getContext('leafletMap') as { getLeafletMap: () => L.Map }).getLeafletMap();
+	const { getLeaflet, getLeafletMap } = getContext<{
+		getLeaflet: () => typeof L;
+		getLeafletMap: () => L.Map;
+		getLeafletLayers: () => Record<string, L.Layer>;
+	}>('leafletContext');
 
 	let tileLayer: L.TileLayer;
 
-	onMount(() => {
+	$effect(() => {
+		const leaflet = getLeaflet();
+		const leafletMap = getLeafletMap();
 		tileLayer = leaflet.tileLayer(url, { ...layerOptions, attribution }).addTo(leafletMap);
-	});
 
-	onDestroy(() => {
-		if (leafletMap && tileLayer) {
-			leafletMap.removeLayer(tileLayer);
-		}
+		return () => {
+			if (leafletMap && tileLayer) {
+				leafletMap.removeLayer(tileLayer);
+			}
+		};
 	});
 </script>

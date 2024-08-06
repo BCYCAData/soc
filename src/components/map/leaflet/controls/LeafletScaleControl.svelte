@@ -19,15 +19,17 @@
 		updateWhenIdle = false
 	}: Props = $props();
 
-	const { getLeafletMap } = getContext<{ getLeafletMap: () => L.Map }>('leafletMap');
-	const { getLeaflet } = getContext<{ getLeaflet: () => typeof L }>('leaflet');
-	let leafletMap: L.Map;
-	let leaflet: typeof L;
+	const { getLeaflet, getLeafletMap, getLeafletLayers } = getContext<{
+		getLeaflet: () => typeof L;
+		getLeafletMap: () => L.Map;
+		getLeafletLayers: () => Record<string, L.Layer>;
+	}>('leafletContext');
+
 	let scaleControl: L.Control.Scale;
 
 	onMount(async () => {
-		leaflet = getLeaflet();
-		leafletMap = getLeafletMap();
+		const leaflet = getLeaflet();
+		const leafletMap = getLeafletMap();
 		if (!scaleControl) {
 			scaleControl = leaflet.control
 				.scale({
