@@ -1,11 +1,17 @@
-<script>
+<script lang="ts">
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
+
 	import Footer from '$components/page/Footer.svelte';
 	import Navbar from '$components/page/navigation/Navbar.svelte';
+
 	import '../app.postcss';
+
+	/** @type {{data: any, children?: import('svelte').Snippet}} */
 	export let data;
+	export let children;
 	$: ({ session, supabase } = data);
+
 	let isDarkMode = false;
 
 	onMount(() => {
@@ -23,19 +29,19 @@
 				document.documentElement.classList.remove('dark');
 			}
 		});
-		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+		const { data: authData } = supabase.auth.onAuthStateChange((_: any, newSession: any) => {
 			if (newSession?.expires_at !== session?.expires_at) {
 				invalidate('supabase:auth');
 			}
 		});
-		return () => data.subscription.unsubscribe();
+		return () => authData.subscription.unsubscribe();
 	});
 </script>
 
 <div class="app-container flex h-screen flex-col">
 	<Navbar />
 	<main class="flex-1 overflow-y-auto">
-		<slot />
+		{@render children?.()}
 	</main>
 	<Footer />
 </div>

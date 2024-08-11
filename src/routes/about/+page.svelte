@@ -40,7 +40,7 @@
 				height="40"
 			/>
 		</picture>
-		<p class="p-0 text-center text-[0.6rem] leading-3 md:text-sm">
+		<p class="md:text-scale-3 p-0 text-center text-[0.6rem] leading-3">
 			This is a Bushfire Community Recovery &amp; Resilience Fund project through the joint
 			Commonwealth/State Disaster Recovery Funding Arrangements
 		</p>

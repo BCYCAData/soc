@@ -27,7 +27,7 @@ export class PointLayerFunctions {
 		return this.leaflet.marker(latlng, {
 			icon: this.leaflet.divIcon({
 				html: options.html || feature.properties?.label,
-				className: 'text-label',
+				className: 'text-scale-4abel',
 				...options
 			})
 		});

@@ -19,7 +19,7 @@
 
 	let tileLayer: L.TileLayer;
 
-	$effect(() => {
+	$effect.pre(() => {
 		const leaflet = getLeaflet();
 		const leafletMap = getLeafletMap();
 		tileLayer = leaflet.tileLayer(url, { ...layerOptions, attribution }).addTo(leafletMap);

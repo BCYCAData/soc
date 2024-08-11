@@ -6,7 +6,7 @@
 	<title>Know Your Neighbour Groups</title>
 </svelte:head>
 
-<section class="wrapper grid h-full text-gray-900">
+<section class="wrapper grid h-full text-surface-950">
 	<div class="main-headlines mx-auto text-center">
 		<h1 class="h1 hidden text-orange-600 sm:mt-1 sm:block sm:text-4xl">
 			Strengthen Our Community - KYNGs
@@ -50,13 +50,13 @@
 			<li class="m-1">Collect and keep up to date contact info.</li>
 			<li class="m-1">Agree with group most suitable methods of passing information.</li>
 			<li class="m-1">Have a trial run of the agreed methods, make any changes.</li>
-			<li class="m-1">Ask people to take part in the property survey.</li>
+			<li class="m-1">Ask people to complete their personal profile.</li>
 			<li class="m-1">
-				Once a year ask people to review and update the info in their property survey
+				Once a year ask people to review and update the info in their personal profile
 			</li>
 		</ol>
 	</div>
-	<div class="final-content text-primary mx-auto pt-2 text-center text-lg">
+	<div class="final-content text-primary text-scale-5 mx-auto pt-2 text-center">
 		<strong><em>Not everyone will want to be part of the program and that is fine.</em></strong>
 		<br />
 		<strong>Everyone is responsible for their own safety.</strong>

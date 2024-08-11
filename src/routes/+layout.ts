@@ -1,4 +1,7 @@
 import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
+
+import { getCommunityOptions, type CommunityRequestOption } from '$lib/profileOptions';
+
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import type { LayoutLoad } from './$types';
 
@@ -38,6 +41,27 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 	const {
 		data: { user }
 	} = await supabase.auth.getUser();
+
+	const communityRequestOptions = getCommunityOptions(
+		(data.communityRequestOptionsData as CommunityRequestOption[] | undefined)?.filter(
+			(item) => item.community_request_options_concordance !== null
+		) as CommunityRequestOption[]
+	);
+	const optionsData = {
+		userOptionsData: communityRequestOptions.find((item) => item.table_name === 'user_profile'),
+		communityBCYCAOptionsData: communityRequestOptions.find(
+			(item) => item.table_name === 'community_bcyca_profile'
+		),
+		communityExternalOptionsData: communityRequestOptions.find(
+			(item) => item.table_name === 'community_external_profile'
+		),
+		communityMondrookOptionsData: communityRequestOptions.find(
+			(item) => item.table_name === 'community_mondrook_profile'
+		),
+		communityTinoneeOptionsData: communityRequestOptions.find(
+			(item) => item.table_name === 'community_tinonee_profile'
+		)
+	};
 
 	return { session, supabase, user };
 };

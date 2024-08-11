@@ -15,20 +15,22 @@
 					future challenges and be armed with knowledge that helps us to tackle whatever natural
 					disaster comes our way.
 				</p>
-				<p class="mb-0 mt-1 text-gray-900">
+				<p class="mb-0 mt-1 text-surface-950">
 					Above all, we want our community to feel prepared, safe and connected.
 				</p>
-				<strong> <em class="unstyled mb-0 mt-1 text-red-700">Will you join us?</em></strong>
+				<strong> <em class="unstyled mb-0 mt-1 text-error-700">Will you join us?</em></strong>
 				<div class="my-4">
 					<a
-						href="/auth/validateaddress"
-						class="max-w-80 cursor-pointer rounded-xl bg-orange-500 p-2 font-semibold text-stone-100 no-underline hover:underline"
+						href="/auth/signup"
+						class="max-w-80 cursor-pointer rounded-xl bg-secondary-500 p-2 font-semibold text-secondary-50 no-underline hover:underline"
 					>
 						Tap here to find out if you qualify
 					</a>
 				</div>
-				<p class="unstyled mt-1 text-sm font-semibold md:text-lg">Want more information?</p>
-				<address class="unstyled mt-0 text-sm font-semibold md:text-lg">
+				<p class="unstyled text-scale-3 md:text-scale-5 mt-1 font-semibold">
+					Want more information?
+				</p>
+				<address class="unstyled text-scale-3 md:text-scale-5 mt-0 font-semibold">
 					Call Helen <a href="tel:0424515963">0424 515 963</a>
 				</address>
 			</article>
@@ -74,7 +76,7 @@
 					height="40"
 				/>
 			</picture>
-			<p class="p-0 text-center text-[0.6rem] leading-3 md:text-sm">
+			<p class="md:text-scale-3 p-0 text-center text-[0.6rem] leading-3">
 				This is a Bushfire Community Recovery &amp; Resilience Fund project through the joint
 				Commonwealth/State Disaster Recovery Funding Arrangements
 			</p>

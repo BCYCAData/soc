@@ -20,7 +20,7 @@
 
 	let layer: L.GeoJSON;
 
-	$effect(() => {
+	$effect.pre(() => {
 		const leaflet = getLeaflet();
 		const leafletMap = getLeafletMap();
 		if (leafletMap) {

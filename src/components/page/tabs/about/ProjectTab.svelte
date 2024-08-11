@@ -47,7 +47,7 @@
 	<title>Strengthen Our Community</title>
 </svelte:head>
 
-<article class="wrapper grid h-full text-gray-900">
+<article class="wrapper grid h-full text-surface-950">
 	<header class="main-headlines mx-auto text-center">
 		<h1 class="text-primary h1 sm:block">Strengthen OUR Community</h1>
 		<strong class="pt-4">
@@ -118,7 +118,7 @@
 		</div>
 	{:else}
 		<div class="main-map mx-auto flex h-full w-5/6 flex-col">
-			<p class="mt-4 text-center text-gray-500">Bugger!</p>
+			<p class="mt-4 text-center text-surface-500">Bugger!</p>
 		</div>
 	{/if}
 </article>
