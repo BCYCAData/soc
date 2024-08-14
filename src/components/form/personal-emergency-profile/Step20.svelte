@@ -13,16 +13,26 @@
 
 	let {
 		userProfile = $bindable(),
-		userPostalAddress,
+		userPostalAddress = $bindable(),
 		communityName = '',
 		userProfileStayInTouchOptions = []
 	}: Props = $props();
 
-	const postalWasChecked = userProfile.stay_in_touch_choices?.includes(5);
+	let localUserProfile = $state({ ...userProfile });
+	let localUserPostalAddress = $state({ ...userPostalAddress });
+
+	$effect(() => {
+		Object.assign(userProfile, localUserProfile);
+		if (userPostalAddress !== null) {
+			Object.assign(userPostalAddress, localUserPostalAddress);
+		}
+	});
+
+	const postalWasChecked = $state(userProfile.stay_in_touch_choices?.includes(5));
 
 	let postalChecked = $state(false);
 	$effect.pre(() => {
-		postalChecked = userProfile.stay_in_touch_choices?.includes(5) ?? false;
+		postalChecked = localUserProfile.stay_in_touch_choices?.includes(5) ?? false;
 	});
 </script>
 
@@ -47,9 +57,9 @@
 				name="stay_in_touch_choices"
 				type="checkbox"
 				onchange={() => {
-					postalChecked = userProfile.stay_in_touch_choices?.includes(5) ?? false;
+					postalChecked = localUserProfile.stay_in_touch_choices?.includes(5) ?? false;
 				}}
-				bind:group={userProfile.stay_in_touch_choices}
+				bind:group={localUserProfile.stay_in_touch_choices}
 				{value}
 			/>
 			<label
@@ -84,7 +94,7 @@
 				autocomplete="street-address"
 				use:setUpperCase
 				style="text-transform:uppercase"
-				value={userPostalAddress?.postal_address_street}
+				value={localUserPostalAddress?.postal_address_street}
 			/>
 		</div>
 	</div>
@@ -109,7 +119,7 @@
 					autocomplete="address-level2"
 					use:setUpperCase
 					style="text-transform:uppercase"
-					value={userPostalAddress?.postal_address_suburb}
+					value={localUserPostalAddress?.postal_address_suburb}
 				/>
 			</div>
 			<div class="col-span-2 flex items-center">
@@ -129,7 +139,7 @@
 					placeholder="POSTCODE"
 					autocomplete="postal-code"
 					style="text-transform:uppercase"
-					value={userPostalAddress?.postal_address_postcode}
+					value={localUserPostalAddress?.postal_address_postcode}
 				/>
 			</div>
 		</div>
@@ -143,5 +153,5 @@
 	divClass="p-2 rounded-lg bg-secondary-200 sm:text-scale-5"
 	nameText="other_comments"
 	textAreaClass="w-full resize-y sm:text-scale-5"
-	bind:inputValue={userProfile.other_comments}
+	bind:inputValue={localUserProfile.other_comments}
 />

@@ -13,6 +13,13 @@
 	}
 
 	let { propertyProfile = $bindable() }: Props = $props();
+
+	let localPropertyProfile = $state({ ...propertyProfile });
+
+	$effect(() => {
+		Object.assign(propertyProfile, localPropertyProfile);
+	});
+
 </script>
 
 <h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
@@ -38,7 +45,7 @@
 	divClass="p-3 rounded-lg bg-secondary-300 sm:text-scale-5"
 	nameText="other_site_hazards"
 	textAreaClass="w-full resize-y sm:text-scale-5"
-	bind:inputValue={propertyProfile.other_site_hazards}
+	bind:inputValue={localPropertyProfile.other_site_hazards}
 />
 <h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
 	Does your property have:<span class="text-scale-3 ml-2 text-surface-500">
@@ -54,7 +61,7 @@
 				class="ml-8 h-6 w-6"
 				name="fire_hazard_reduction"
 				type="checkbox"
-				bind:group={propertyProfile.fire_hazard_reduction}
+				bind:group={localPropertyProfile.fire_hazard_reduction}
 				{value}
 			/>
 			<label
@@ -75,7 +82,7 @@
 				id="land_adjacent_hazard"
 				type="radio"
 				name="land_adjacent_hazard"
-				bind:group={propertyProfile.land_adjacent_hazard}
+				bind:group={localPropertyProfile.land_adjacent_hazard}
 				{value}
 			/>
 			<label
@@ -93,5 +100,5 @@
 	divClass="p-3 rounded-lg bg-secondary-300 sm:text-scale-5"
 	nameText="other_hazards"
 	textAreaClass="w-full resize-y sm:text-scale-5"
-	bind:inputValue={propertyProfile.other_hazards}
+	bind:inputValue={localPropertyProfile.other_hazards}
 />

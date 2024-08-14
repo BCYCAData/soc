@@ -10,6 +10,14 @@
 
 	let { communityExternalProfile = $bindable(), communityExternalInformationOptions = [] }: Props =
 		$props();
+
+	let localCommunityExternalProfile = $state({ ...communityExternalProfile });
+
+	$effect(() => {
+		if (communityExternalProfile) {
+			Object.assign(communityExternalProfile, localCommunityExternalProfile);
+		}
+	});
 </script>
 
 <h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
@@ -27,7 +35,7 @@
 					class="ml-8 h-6 w-6"
 					name="information_sheet_choices"
 					type="checkbox"
-					bind:group={communityExternalProfile.information_sheet_choices}
+					bind:group={localCommunityExternalProfile.information_sheet_choices}
 					{value}
 				/>
 				<label
@@ -46,6 +54,6 @@
 		divClass="p-2 rounded-lg bg-secondary-300 sm:text-scale-5"
 		nameText="other_information_sheet"
 		textAreaClass="w-full resize-y sm:text-scale-5"
-		bind:inputValue={communityExternalProfile.other_information_sheet}
+		bind:inputValue={localCommunityExternalProfile.other_information_sheet}
 	/>
 {/if}

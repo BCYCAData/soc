@@ -179,7 +179,7 @@
 		</span>
 		at Step 12
 	</div>
-	<form method="post" action="/personalProfileForm" id="personalProfileForm">
+	<form method="post" action="/personal-profile-form" id="personalProfileForm">
 		<input type="hidden" name="communityName" value={communityName} />
 		<input type="hidden" name="propertyId" value={propertyId} />
 		<input type="hidden" name="propertyWasRented" value={propertyWasRented} />

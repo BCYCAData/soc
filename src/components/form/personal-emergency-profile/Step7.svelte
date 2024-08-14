@@ -13,6 +13,12 @@
 	}
 
 	let { userProfile = $bindable() }: Props = $props();
+
+	let localUserProfile = $state({ ...userProfile });
+
+	$effect(() => {
+		Object.assign(userProfile, localUserProfile);
+	});
 </script>
 
 <h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
@@ -26,7 +32,7 @@
 				id="rfs_survival_plan"
 				type="radio"
 				name="rfs_survival_plan"
-				bind:group={userProfile.rfs_survival_plan}
+				bind:group={localUserProfile.rfs_survival_plan}
 				{value}
 			/>
 			<label
@@ -48,7 +54,7 @@
 					id="fire_fighting_experience"
 					type="radio"
 					name="fire_fighting_experience"
-					bind:group={userProfile.fire_fighting_experience}
+					bind:group={localUserProfile.fire_fighting_experience}
 					{value}
 				/>
 				<label
@@ -70,7 +76,7 @@
 				id="fire_trauma"
 				type="radio"
 				name="fire_trauma"
-				bind:group={userProfile.fire_trauma}
+				bind:group={localUserProfile.fire_trauma}
 				{value}
 			/>
 			<label class="font-Poppins text-scale-6 ml-2 font-medium text-orange-900" for="fire_trauma"
@@ -91,7 +97,7 @@
 					id="plan_to_leave_before_fire"
 					type="radio"
 					name="plan_to_leave_before_fire"
-					bind:group={userProfile.plan_to_leave_before_fire}
+					bind:group={localUserProfile.plan_to_leave_before_fire}
 					{value}
 				/>
 				<label
@@ -114,7 +120,7 @@
 					id="plan_to_leave_before_flood"
 					type="radio"
 					name="plan_to_leave_before_flood"
-					bind:group={userProfile.plan_to_leave_before_flood}
+					bind:group={localUserProfile.plan_to_leave_before_flood}
 					{value}
 				/>
 				<label

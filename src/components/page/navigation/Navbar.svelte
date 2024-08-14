@@ -40,8 +40,8 @@
 				>
 			{/if}
 			<a
-				class:active={$page.url.pathname.includes('/profile')}
-				href="/profile"
+				class:active={$page.url.pathname.includes('/personal-profile')}
+				href="/personal-profile"
 				class="btn-base btn mr-2 rounded-xl bg-primary-500 font-semibold text-surface-50">Profile</a
 			>
 			<form method="POST" action="/api/auth/signout">

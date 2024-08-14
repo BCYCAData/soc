@@ -10,6 +10,14 @@
 
 	let { communityMondrookProfile = $bindable(), communityMondrookInformationOptions = [] }: Props =
 		$props();
+
+	let localCommunityMondrookProfile = $state({ ...communityMondrookProfile });
+
+	$effect(() => {
+		if (communityMondrookProfile) {
+			Object.assign(communityMondrookProfile, localCommunityMondrookProfile);
+		}
+	});
 </script>
 
 <h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
@@ -29,7 +37,7 @@
 					class="ml-8 h-6 w-6"
 					name="information_sheet_choices"
 					type="checkbox"
-					bind:group={communityMondrookProfile.information_sheet_choices}
+					bind:group={localCommunityMondrookProfile.information_sheet_choices}
 					{value}
 				/>
 				<label
@@ -48,6 +56,6 @@
 		divClass="p-2 rounded-lg bg-secondary-300 sm:text-scale-5"
 		nameText="other_information_sheet"
 		textAreaClass="w-full resize-y sm:text-scale-5"
-		bind:inputValue={communityMondrookProfile.other_information_sheet}
+		bind:inputValue={localCommunityMondrookProfile.other_information_sheet}
 	/>
 {/if}

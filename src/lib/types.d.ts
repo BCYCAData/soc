@@ -1,3 +1,10 @@
+import type { JwtPayload } from 'jwt-decode';
+
+export type CustomJwtPayload = JwtPayload & {
+	user_role: string;
+	coordinates_kyng: string[];
+};
+
 export type APIData = {
 	status: number;
 	searchaddressstreet: string;
@@ -14,6 +21,30 @@ export type Step = {
 	index: number;
 	text: string;
 	page: string;
+};
+
+export type Crumb = {
+	label: string;
+	href: string;
+};
+
+export type ProfileMenuItem = {
+	id: string;
+	name: string;
+	link: string;
+	icon: string;
+	initialOpen?: boolean;
+	subItems?: ProfileMenuItem[];
+};
+
+export type AdminMenuItem = {
+	id: string;
+	name: string;
+	link: string;
+	icon: string | null;
+	permission: string;
+	initialOpen?: boolean;
+	subItems?: AdminMenuItem[];
 };
 
 //---------Personal Profile Form-----------------
@@ -253,3 +284,9 @@ export type ProfileMyCommunityExternalWorkshopsFormData = {
 	other_community_workshop: string | null;
 	will_run_community_workshops: string | null;
 };
+
+//---------Functions-----------------
+export type AppMessageFunctionData =
+	Database['public']['Functions']['get_profile_messages_for_user']['Returns'];
+export type ProfileMessageData =
+	Database['public']['Functions']['get_profile_messages_for_user']['Returns'];

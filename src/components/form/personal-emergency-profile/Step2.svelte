@@ -24,7 +24,19 @@
 		propertyProfile = $bindable()
 	}: Props = $props();
 
-	const propertyWasRented = propertyProfile.property_rented || false;
+	let localPropertyAddress = $state({ ...propertyAddress });
+	let localPropertyAgent = $state({ ...propertyAgent });
+	let localUserProfile = $state({ ...userProfile });
+	let localPropertyProfile = $state({ ...propertyProfile });
+
+	$effect(() => {
+		Object.assign(propertyAddress, localPropertyAddress);
+		Object.assign(propertyAgent, localPropertyAgent);
+		Object.assign(userProfile, localUserProfile);
+		Object.assign(propertyProfile, localPropertyProfile);
+	});
+
+	const propertyWasRented = $state(propertyProfile.property_rented || false);
 	let otherAccessChecked = $state(propertyProfile.truck_access === 4 ? true : false);
 	let rentingChecked = $state(propertyProfile.property_rented === true);
 </script>
@@ -42,7 +54,7 @@
 				style="text-transform:capitalize"
 				placeholder="First Name "
 				use:setTitleCase
-				bind:value={userProfile.first_name}
+				bind:value={localUserProfile.first_name}
 			/>
 		</div>
 		<div class="w-full">
@@ -55,7 +67,7 @@
 				style="text-transform:capitalize"
 				placeholder="Family Name "
 				use:setTitleCase
-				bind:value={userProfile.family_name}
+				bind:value={localUserProfile.family_name}
 			/>
 		</div>
 	</div>
@@ -105,7 +117,7 @@
 						use:setUpperCase
 						style="text-transform:uppercase"
 						disabled
-						bind:value={propertyAddress.property_address_suburb}
+						bind:value={localPropertyAddress.property_address_suburb}
 					/>
 				</div>
 				<div class="col-span-2 flex items-center">
@@ -124,7 +136,7 @@
 						autocomplete="postal-code"
 						style="text-transform:uppercase"
 						disabled
-						bind:value={propertyAddress.property_address_postcode}
+						bind:value={localPropertyAddress.property_address_postcode}
 					/>
 				</div>
 			</div>
@@ -152,7 +164,7 @@
 							onchange={() => {
 								rentingChecked = true;
 							}}
-							bind:group={propertyProfile.property_rented}
+							bind:group={localPropertyProfile.property_rented}
 							{value}
 						/>
 						<label
@@ -170,7 +182,7 @@
 							onchange={() => {
 								rentingChecked = false;
 							}}
-							bind:group={propertyProfile.property_rented}
+							bind:group={localPropertyProfile.property_rented}
 							{value}
 						/>
 						<label
@@ -194,7 +206,7 @@
 				name="agent_name"
 				autocomplete="off"
 				hidden={!rentingChecked}
-				bind:value={propertyAgent.agent_name}
+				bind:value={localPropertyAgent.agent_name}
 			/>
 			<label
 				class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
@@ -220,7 +232,7 @@
 					}
 				}}
 				hidden={!rentingChecked}
-				bind:value={propertyAgent.agent_mobile}
+				bind:value={localPropertyAgent.agent_mobile}
 			/>
 			<label
 				class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
@@ -245,7 +257,7 @@
 					}
 				}}
 				hidden={!rentingChecked}
-				bind:value={propertyAgent.agent_phone}
+				bind:value={localPropertyAgent.agent_phone}
 			/>
 		</div>
 	</div>
@@ -259,7 +271,7 @@
 					name="sign_posted"
 					class="ml-8 h-6 w-6"
 					type="radio"
-					bind:group={propertyProfile.sign_posted}
+					bind:group={localPropertyProfile.sign_posted}
 					{value}
 				/>
 				<label
@@ -284,7 +296,7 @@
 						}}
 						name="truck_access"
 						type="radio"
-						bind:group={propertyProfile.truck_access}
+						bind:group={localPropertyProfile.truck_access}
 						{value}
 					/>
 					<label
@@ -297,7 +309,7 @@
 						id="truck_access_other_information"
 						name="truck_access_other_information"
 						hidden={!otherAccessChecked}
-						bind:value={propertyProfile.truck_access_other_information}
+						bind:value={localPropertyProfile.truck_access_other_information}
 					/>
 				</div>
 			{:else}
@@ -311,7 +323,7 @@
 						autocomplete="off"
 						placeholder="Other Access Information..."
 						type="radio"
-						bind:group={propertyProfile.truck_access}
+						bind:group={localPropertyProfile.truck_access}
 						{value}
 					/>
 					<label
@@ -349,7 +361,7 @@
 						}
 					}
 				}}
-				bind:value={userProfile.mobile}
+				bind:value={localUserProfile.mobile}
 				autocomplete="off"
 			/>
 			<label
@@ -373,7 +385,7 @@
 						}
 					}
 				}}
-				bind:value={propertyProfile.phone}
+				bind:value={localPropertyProfile.phone}
 				autocomplete="tel-local"
 			/>
 		</div>

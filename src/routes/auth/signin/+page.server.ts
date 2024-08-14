@@ -24,6 +24,6 @@ export const actions: Actions = {
 				message: 'Server error. Try again later.'
 			});
 		}
-		redirect(303, '/profile');
+		redirect(303, '/personal-profile');
 	}
 };

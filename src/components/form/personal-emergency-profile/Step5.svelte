@@ -15,6 +15,12 @@
 
 	let { propertyProfile = $bindable() }: Props = $props();
 
+	let localPropertyProfile = $state({ ...propertyProfile });
+
+	$effect(() => {
+		Object.assign(propertyProfile, localPropertyProfile);
+	});
+
 	let noneChecked = $state(false);
 	let have_stortzChecked = $state(propertyProfile.have_stortz == 'Y');
 
@@ -56,7 +62,7 @@
 					class="ml-8 h-6 w-6"
 					id="static_water_available"
 					type="checkbox"
-					bind:group={propertyProfile.static_water_available}
+					bind:group={localPropertyProfile.static_water_available}
 					name="static_water_available"
 					{value}
 					onchange={(e) => {
@@ -75,7 +81,7 @@
 					id="static_water_available"
 					type="checkbox"
 					name="static_water_available"
-					bind:group={propertyProfile.static_water_available}
+					bind:group={localPropertyProfile.static_water_available}
 					{value}
 					onchange={(e) => {
 						unCheckAllStaticWater(e);
@@ -105,7 +111,7 @@
 				onchange={(e) => {
 					have_stortzChecked = e.currentTarget.value == 'Y';
 				}}
-				bind:group={propertyProfile.have_stortz}
+				bind:group={localPropertyProfile.have_stortz}
 				{value}
 			/>
 			<label class="font-Poppins text-scale-6 ml-2 font-medium text-orange-900" for="have_stortz"
@@ -124,7 +130,7 @@
 				lableClass="min-w-fit mr-3 text-scale-6 font-medium text-orange-900 font-Poppins"
 				inputClass="max-w-sm border border-secondary-700 w-20 rounded sm:text-scale-5"
 				divClass="flex items-center"
-				bind:inputValue={propertyProfile.stortz_size}
+				bind:inputValue={localPropertyProfile.stortz_size}
 			/>
 		</div>
 	</div>
@@ -145,7 +151,7 @@
 				id="fire_fighting_resources"
 				type="checkbox"
 				name="fire_fighting_resources"
-				bind:group={propertyProfile.fire_fighting_resources}
+				bind:group={localPropertyProfile.fire_fighting_resources}
 				{value}
 			/>
 			<label

@@ -10,6 +10,14 @@
 
 	let { communityTinoneeProfile = $bindable(), communityTinoneeMeetingOptions = [] }: Props =
 		$props();
+
+	let localCommunityTinoneeProfile = $state({ ...communityTinoneeProfile });
+
+	$effect(() => {
+		if (communityTinoneeProfile) {
+			Object.assign(communityTinoneeProfile, localCommunityTinoneeProfile);
+		}
+	});
 </script>
 
 <h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
@@ -29,7 +37,7 @@
 					class="ml-8 h-6 w-6"
 					name="community_meeting_choices"
 					type="checkbox"
-					bind:group={communityTinoneeProfile.community_meeting_choices}
+					bind:group={localCommunityTinoneeProfile.community_meeting_choices}
 					{value}
 				/>
 				<label
@@ -48,6 +56,6 @@
 		divClass="p-2 rounded-lg bg-secondary-200 sm:text-scale-5"
 		nameText="other_community_meeting"
 		textAreaClass="w-full resize-y sm:text-scale-5"
-		bind:inputValue={communityTinoneeProfile.other_community_meeting}
+		bind:inputValue={localCommunityTinoneeProfile.other_community_meeting}
 	/>
 {/if}

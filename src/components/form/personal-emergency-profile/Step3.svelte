@@ -10,6 +10,14 @@
 	}
 
 	let { userProfile = $bindable(), propertyProfile = $bindable() }: Props = $props();
+
+	let localUserProfile = $state({ ...userProfile });
+	let localPropertyProfile = $state({ ...propertyProfile });
+
+	$effect(() => {
+		Object.assign(userProfile, localUserProfile);
+		Object.assign(propertyProfile, localPropertyProfile);
+	});
 </script>
 
 <h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
@@ -24,7 +32,7 @@
 					name="mobile_reception"
 					type="radio"
 					class="h-4 w-4 border-gray-300 bg-gray-100 text-orange-700 checked:ring-orange-700 focus:ring-orange-700"
-					bind:group={propertyProfile.mobile_reception}
+					bind:group={localPropertyProfile.mobile_reception}
 					value={i + 1}
 				/>
 				<label class="font-Poppins ml-1 inline-block text-primary-700" for="mobile_reception">
@@ -46,7 +54,7 @@
 				id="residency_profile"
 				type="radio"
 				name="residency_profile"
-				bind:group={userProfile.residency_profile}
+				bind:group={localUserProfile.residency_profile}
 				{value}
 			/>
 			<label
@@ -66,28 +74,28 @@
 			lable="0-18 years"
 			lableClass="ml-2 text-scale-6 font-medium text-orange-700 font-Poppins"
 			inputClass="border border-secondary-700 w-20 rounded sm:text-scale-5"
-			bind:inputValue={propertyProfile.residents0_18}
+			bind:inputValue={localPropertyProfile.residents0_18}
 		/>
 		<NumberInput
 			name="residents19_50"
 			lable="19-50 years"
 			lableClass="ml-2 text-scale-6 font-medium text-orange-700 font-Poppins"
 			inputClass="border border-secondary-700 w-20 rounded sm:text-scale-5"
-			bind:inputValue={propertyProfile.residents19_50}
+			bind:inputValue={localPropertyProfile.residents19_50}
 		/>
 		<NumberInput
 			name="residents51_70"
 			lable="51-70 years"
 			lableClass="ml-2 text-scale-6 font-medium text-orange-700 font-Poppins"
 			inputClass="border border-secondary-700 w-20 rounded sm:text-scale-5"
-			bind:inputValue={propertyProfile.residents51_70}
+			bind:inputValue={localPropertyProfile.residents51_70}
 		/>
 		<NumberInput
 			name="residents71_"
 			lable="71 years +"
 			lableClass="ml-2 text-scale-6 font-medium text-orange-700 font-Poppins"
 			inputClass="border border-secondary-700 w-20 rounded sm:text-scale-5"
-			bind:inputValue={propertyProfile.residents71_}
+			bind:inputValue={localPropertyProfile.residents71_}
 		/>
 	</ul>
 </div>
@@ -103,7 +111,7 @@
 					id="vulnerable_residents"
 					type="radio"
 					name="vulnerable_residents"
-					bind:group={propertyProfile.vulnerable_residents}
+					bind:group={localPropertyProfile.vulnerable_residents}
 					{value}
 				/>
 				<label

@@ -63,5 +63,12 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		)
 	};
 
-	return { session, supabase, user };
+	return {
+		session,
+		supabase,
+		user,
+		premissions: data.permissions,
+		coordinatesKYNG: data.coordinatesKYNG,
+		optionsData
+	};
 };

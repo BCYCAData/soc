@@ -6,9 +6,9 @@
 	import Navbar from '$components/page/navigation/Navbar.svelte';
 
 	import '../app.postcss';
+	import type { LayoutData } from './$types';
 
-	/** @type {{data: any, children?: import('svelte').Snippet}} */
-	export let data;
+	export let data: LayoutData;
 	export let children;
 	$: ({ session, supabase } = data);
 

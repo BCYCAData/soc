@@ -10,6 +10,14 @@
 
 	let { communityMondrookProfile = $bindable(), communityMondrookWorkshopOptions = [] }: Props =
 		$props();
+
+	let localCommunityMondrookProfile = $state({ ...communityMondrookProfile });
+
+	$effect(() => {
+		if (communityMondrookProfile) {
+			Object.assign(communityMondrookProfile, localCommunityMondrookProfile);
+		}
+	});
 </script>
 
 <h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
@@ -29,7 +37,7 @@
 					class="ml-8 h-6 w-6"
 					name="community_workshop_choices"
 					type="checkbox"
-					bind:group={communityMondrookProfile.community_workshop_choices}
+					bind:group={localCommunityMondrookProfile.community_workshop_choices}
 					{value}
 				/>
 				<label
@@ -48,7 +56,7 @@
 		divClass="p-2 rounded-lg bg-secondary-200 sm:text-scale-5"
 		nameText="other_community_workshop"
 		textAreaClass="w-full resize-y sm:text-scale-5"
-		bind:inputValue={communityMondrookProfile.other_community_workshop}
+		bind:inputValue={localCommunityMondrookProfile.other_community_workshop}
 	/>
 	<TextAreaInput
 		headingClass="unstyled mb-1 text-scale-6 font-semibold text-surface-950"
@@ -59,6 +67,6 @@
 		divClass="p-2 rounded-lg bg-secondary-200 sm:text-scale-5"
 		nameText="will_run_community_workshops"
 		textAreaClass="w-full resize-y sm:text-scale-5"
-		bind:inputValue={communityMondrookProfile.will_run_community_workshops}
+		bind:inputValue={localCommunityMondrookProfile.will_run_community_workshops}
 	/>
 {/if}

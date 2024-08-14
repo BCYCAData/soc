@@ -380,6 +380,6 @@ export const actions: Actions = {
 			console.log('propertyProfileUpdateError', propertyProfileUpdateError);
 			error(400, `update Property Profile Data Error ${propertyProfileUpdateError.message}`);
 		}
-		redirect(303, '/profile');
+		redirect(303, '/personal-profile');
 	}
 };
