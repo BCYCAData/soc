@@ -10,9 +10,9 @@
 
 	import type { ActionData } from './$types';
 
-	interface Props {
+	type Props = {
 		form: ActionData;
-	}
+	};
 
 	let { form }: Props = $props();
 

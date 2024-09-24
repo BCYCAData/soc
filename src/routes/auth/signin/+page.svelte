@@ -1,9 +1,10 @@
 <script lang="ts">
 	import AuthErrorMessage from '$components/form/auth/AuthErrorMessage.svelte';
+	import type { ActionData } from './$types';
 
-	interface Props {
-		form: any;
-	}
+	type Props = {
+		form: ActionData;
+	};
 
 	let { form }: Props = $props();
 	let email = $state();
@@ -17,7 +18,7 @@
 
 <div class="mx-auto flex max-w-md flex-col items-center justify-center">
 	<div class="w-5/6 rounded bg-secondary-100 p-6 text-surface-950 shadow-md sm:ml-0 sm:w-full">
-		<h1 class="unstyled mb-4 text-center text-2xl">Welcome Back</h1>
+		<h1 class="h1 mb-4 text-center text-2xl">Welcome Back</h1>
 		<form action="?/signin" method="POST">
 			<input
 				id="email"

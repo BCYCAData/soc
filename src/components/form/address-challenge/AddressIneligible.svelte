@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { PUBLIC_CONTACT_EMAIL } from '$env/static/public';
 
-	interface Props {
+	type Props = {
 		streetaddress: string;
 		suburb: string;
-	}
+	};
 
 	let { streetaddress, suburb }: Props = $props();
 

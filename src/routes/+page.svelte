@@ -18,7 +18,7 @@
 				<p class="mb-0 mt-1 text-surface-950">
 					Above all, we want our community to feel prepared, safe and connected.
 				</p>
-				<strong> <em class="unstyled mb-0 mt-1 text-error-700">Will you join us?</em></strong>
+				<strong> <em class="mb-0 mt-1 text-error-700">Will you join us?</em></strong>
 				<div class="my-4">
 					<a
 						href="/auth/signup"
@@ -27,10 +27,8 @@
 						Tap here to find out if you qualify
 					</a>
 				</div>
-				<p class="unstyled text-scale-3 md:text-scale-5 mt-1 font-semibold">
-					Want more information?
-				</p>
-				<address class="unstyled text-scale-3 md:text-scale-5 mt-0 font-semibold">
+				<p class="text-scale-3 md:text-scale-5 mt-1 font-semibold">Want more information?</p>
+				<address class="text-scale-3 md:text-scale-5 mt-0 font-semibold">
 					Call Helen <a href="tel:0424515963">0424 515 963</a>
 				</address>
 			</article>

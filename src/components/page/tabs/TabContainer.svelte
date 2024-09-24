@@ -8,11 +8,12 @@
 		props?: Record<string, any>;
 	}
 
-	interface Props {
+	type Props = {
 		items: TabItem[];
-	}
+	};
 
 	let { items = [] }: Props = $props();
+
 	let activeTabValue = $state(1);
 
 	const handleClick = (tabValue: number) => () => (activeTabValue = tabValue);
@@ -41,7 +42,7 @@
 {#each items as item}
 	{#if activeTabValue == item.value}
 		<div class="box">
-			<svelte:component this={item.component} {...item.props} />
+			<item.component {...item.props} />
 		</div>
 	{/if}
 {/each}

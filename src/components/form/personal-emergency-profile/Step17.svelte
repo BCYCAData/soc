@@ -1,26 +1,18 @@
 <script lang="ts">
 	import TextAreaInput from '$components/form/inputs/TextAreaInput.svelte';
 
-	import type { CommunityExternalProfileData } from '$lib/types';
+	import type { ExternalCommunityProfile } from '$lib/form.types';
 
-	interface Props {
-		communityExternalProfile: CommunityExternalProfileData;
+	type Props = {
+		communityExternalProfile: ExternalCommunityProfile;
 		communityExternalWorkshopOptions?: { value: string; lable: string }[];
-	}
+	};
 
 	let { communityExternalProfile = $bindable(), communityExternalWorkshopOptions = [] }: Props =
 		$props();
-
-	let localCommunityExternalProfile = $state({ ...communityExternalProfile });
-
-	$effect(() => {
-		if (communityExternalProfile) {
-			Object.assign(communityExternalProfile, localCommunityExternalProfile);
-		}
-	});
 </script>
 
-<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
+<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">
 	Which of these Community initiated workshops would be useful to you?<span
 		class="text-scale-3 text-surface-700"
 	>
@@ -37,18 +29,19 @@
 					class="ml-8 h-6 w-6"
 					name="community_workshop_choices"
 					type="checkbox"
-					bind:group={localCommunityExternalProfile.community_workshop_choices}
-					{value}
+					bind:group={communityExternalProfile.community_workshop_choices}
+					value={Number(value)}
+					checked={communityExternalProfile?.community_workshop_choices?.includes(Number(value))}
 				/>
 				<label
-					class="font-Poppins text-scale-6 ml-2 font-medium text-orange-900"
+					class="text-scale-6 ml-2 font-medium text-orange-900"
 					for="community_workshop_choices">{lable}</label
 				>
 			</div>
 		{/each}
 	</div>
 	<TextAreaInput
-		headingClass="unstyled mb-1 text-scale-6 font-semibold text-surface-950"
+		headingClass="h2 mb-1 text-lgfont-semibold text-surface-950"
 		headingText="If there are other workshops that you would like to see run, please add
 			the details here:"
 		lableClass={null}
@@ -56,10 +49,10 @@
 		divClass="p-2 rounded-lg bg-secondary-200 sm:text-scale-5"
 		nameText="other_community_workshop"
 		textAreaClass="w-full resize-y sm:text-scale-5"
-		bind:inputValue={localCommunityExternalProfile.other_community_workshop}
+		bind:inputValue={communityExternalProfile.other_community_workshop}
 	/>
 	<TextAreaInput
-		headingClass="unstyled mb-1 text-scale-6 font-semibold text-surface-950"
+		headingClass="h2 mb-1 text-lgfont-semibold text-surface-950"
 		headingText="If you would like to help run any of the workshops, please indicate which
 			ones below."
 		lableClass={null}
@@ -67,6 +60,6 @@
 		divClass="p-2 rounded-lg bg-secondary-200 sm:text-scale-5"
 		nameText="will_run_community_workshops"
 		textAreaClass="w-full resize-y sm:text-scale-5"
-		bind:inputValue={localCommunityExternalProfile.will_run_community_workshops}
+		bind:inputValue={communityExternalProfile.will_run_community_workshops}
 	/>
 {/if}

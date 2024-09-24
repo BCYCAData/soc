@@ -1,33 +1,49 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import type { Crumb } from '$lib/types';
+	import type { PropertyProfile } from '$lib/form.types';
+	import type { PathConfig, Crumb } from '$lib/menu-items';
 
-	interface Props {
-		pathLables: any;
-	}
+	type Props = {
+		pathLables: Record<string, PathConfig>;
+		properties: PropertyProfile[];
+	};
 
-	let { pathLables }: Props = $props();
+	let { pathLables, properties }: Props = $props();
+
 	let crumbs: Crumb[] = $state([]);
+
+	function isPropertyId(label: string): boolean {
+		return properties.some((property) => property.id === label);
+	}
 
 	$effect(() => {
 		const tokens = $page.url.pathname.split('/').filter((t) => t !== '');
 		let tokenPath = '';
-		crumbs = tokens.map((t) => {
+		crumbs = tokens.map((t, index) => {
 			tokenPath += '/' + t;
-			console.log('tokenPath', tokenPath);
-			console.log('lable', pathLables[t]);
+			let config = pathLables[t] || { label: t };
+			if (isPropertyId(t)) {
+				const propertyIndex = properties.findIndex((p) => p.id === t);
+				const label = properties.length === 1 ? 'My Property' : `Property ${propertyIndex + 1}`;
+				config = { label, icon: pathLables['my-property'].icon };
+			}
 			return {
-				label: pathLables[t][0],
-				href: tokenPath
+				label: config.label,
+				href: tokenPath,
+				icon: config.icon,
+				letter: config.letter || config.label[0].toUpperCase()
 			};
 		});
 	});
 </script>
 
 <ul id="breadcrumb">
-	{#each crumbs as c, i}
+	{#each crumbs as c}
 		<li>
-			<a class="flex items-center" href={c.href}>
+			<a href={c.href}>
+				{#if c.icon}
+					<span> <c.icon size={16} letter={c.letter} /></span>
+				{/if}
 				<span>{c.label}</span>
 			</a>
 		</li>
@@ -38,6 +54,7 @@
 	* {
 		margin: 0;
 		padding: 0;
+		/* font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; */
 		font-size: 16px;
 	}
 	#breadcrumb {
@@ -49,16 +66,23 @@
 	}
 	#breadcrumb li a {
 		color: #fff;
-		display: block;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		background: #f97316;
 		text-decoration: none;
 		position: relative;
 		height: 30px;
-		line-height: 30px;
-		padding: 0 10px 0 5px;
-		text-align: center;
-		margin-right: 23px;
+		padding: 0 15px;
+		margin-right: 10px;
+		gap: 5px;
 	}
+	#breadcrumb li a span:first-child {
+		display: flex;
+		align-items: center;
+		/* background-color: aqua; */
+	}
+
 	#breadcrumb li:nth-child(even) a {
 		background-color: #fba74c;
 	}

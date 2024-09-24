@@ -1,239 +1,192 @@
 <script lang="ts">
-	import { setContext } from 'svelte';
-	import { browser } from '$app/environment';
+	import { onMount, onDestroy, setContext } from 'svelte';
 
-	import LeafletLegendControl from './controls/LeafletLegendControl.svelte';
+	import GeomanControls from '$components/map/leaflet/controls/GeomanControls.svelte';
 
 	import type L from 'leaflet';
 
-	// Props
+	import { writable, type Writable } from 'svelte/store';
+
+	interface ControlInfo {
+		present: boolean;
+		position?: L.ControlPosition;
+	}
+
+	interface LegendItem {
+		symbol: string;
+		description: string;
+	}
+
+	interface GroupedLegendItem {
+		groupName: string;
+		items: LegendItem[];
+	}
+
+	interface LegendInfo {
+		items: (LegendItem | GroupedLegendItem)[];
+	}
+
+	interface LayerInfo {
+		layer: L.Layer;
+		visible: boolean;
+		editable: boolean;
+		showInLegend: boolean;
+		legendInfo: LegendInfo;
+	}
+
 	interface Props {
-		centre: L.LatLngExpression;
-		zoom?: number;
+		centre?: L.LatLngExpression | [number, number] | undefined;
+		bounds?: L.LatLngBoundsExpression | [[number, number], [number, number]] | undefined;
+		zoom?: number | undefined;
 		minZoom?: number | undefined;
 		maxZoom?: number | undefined;
-		boxZoom?: boolean;
-		doubleClickZoom?: boolean;
-		touchZoom?: boolean;
-		dragging?: boolean;
+		zoomable?: boolean;
 		zoomSnap?: number;
-		zoomDelta?: number;
-		scrollWheelZoom?: boolean;
-		keyboard?: boolean;
-		zoomControl?: boolean;
-		attributionControl?: boolean;
-		layersControl?: boolean;
-		legend?: boolean;
-		legendPosition?: L.ControlPosition;
+		attributionControl?: ControlInfo;
+		layersControl?: ControlInfo;
+		editControl?: ControlInfo;
 		width?: string;
 		height?: string;
+		baseLayers: Array<{ name: string; url: string; attribution: string }>;
 		children?: import('svelte').Snippet;
 	}
 
 	let {
-		centre = $bindable(),
-		zoom = $bindable(15),
+		centre = undefined,
+		zoom = undefined,
+		bounds = undefined,
 		minZoom = undefined,
 		maxZoom = undefined,
-		boxZoom = true,
-		doubleClickZoom = true,
-		touchZoom = true,
-		dragging = true,
-		zoomSnap = 1,
-		zoomDelta = 1,
-		scrollWheelZoom = true,
-		keyboard = true,
-		zoomControl = true,
-		attributionControl = true,
-		layersControl = true,
-		legend = false,
-		legendPosition = 'bottomright',
+		zoomable = true,
+		zoomSnap = 0.25,
+		attributionControl = { present: true },
+		layersControl = { present: true, position: 'topright' },
+		editControl = { present: false },
 		width = '100%',
 		height = '98%',
+		baseLayers,
 		children
 	}: Props = $props();
 
-	// Reactive style
+	const boxZoom = zoomable;
+	const doubleClickZoom = zoomable;
+	const touchZoom = zoomable;
+	const dragging = zoomable;
+	const zoomDelta = zoomSnap;
+	const scrollWheelZoom = zoomable;
+	const keyboard = zoomable;
+	const zoomControl = zoomable;
+
 	let style = $derived(`width:${width};height:${height};`);
 
 	// Leaflet module and map instance
-	let leaflet: typeof L | undefined = $state();
-	let leafletMap: L.Map | undefined = $state();
-	let mapDiv: HTMLDivElement | undefined = $state();
-	let layersList: Record<string, L.Layer> = $state({});
-	let layersOptionsList: Record<string, L.GeoJSONOptions> = $state({});
+	let leaflet = $state<typeof L>();
+	let leafletMap = $state<L.Map>();
+	let mapDiv: HTMLDivElement;
 
+	$effect(() => {
+		console.log('leaflet updated');
+	});
+
+	// Controls
+	let layersControlInstance: L.Control.Layers;
+
+	// Stores for Leaflet and map instance
+	const leafletStore: Writable<typeof L | null> = writable(null);
+	const mapStore: Writable<L.Map | null> = writable(null);
+	const layersControlStore: Writable<L.Control.Layers | null> = writable(null);
+	const layersStore: Writable<Record<string, LayerInfo>> = writable({});
+
+	// Set context for child components
 	setContext('leafletContext', {
 		getLeaflet: () => leaflet,
 		getLeafletMap: () => leafletMap,
-		getLeafletLayers: () => layersList,
-		updateLayersList,
-		updateLayersOptionsList
+		getLeafletLayers: () => layersStore,
+		getLayersControl: () => layersControlStore
 	});
 
-	let layersControlInstance: L.Control.Layers;
-
-	$inspect(layersList);
-
-	if (Object.keys(layersOptionsList).length > 0) {
-		$inspect(layersOptionsList);
-	}
-
-	$effect(() => {
-		if (browser && mapDiv) {
-			import('leaflet').then((module) => {
-				leaflet = module.default;
-				if (leaflet && mapDiv) {
-					leafletMap = leaflet
-						.map(mapDiv, {
-							minZoom,
-							maxZoom,
-							zoomSnap,
-							zoomDelta,
-							boxZoom,
-							doubleClickZoom,
-							touchZoom,
-							scrollWheelZoom,
-							dragging,
-							keyboard,
-							zoomControl,
-							attributionControl
-						})
-						.setView(centre, zoom);
-
-					if (layersControl && leafletMap) {
-						layersControlInstance = leaflet.control.layers().addTo(leafletMap);
-
-						$effect(() => {
-							if (layersControlInstance && leaflet && leafletMap) {
-								layersControlInstance.remove();
-								layersControlInstance = leaflet.control.layers().addTo(leafletMap);
-
-								Object.entries(layersList).forEach(([name, layer]) => {
-									layersControlInstance.addOverlay(layer, name);
-								});
-							}
-						});
-					}
-
-					// Event listeners
-					leafletMap.on('zoomend', () => {
-						zoom = leafletMap?.getZoom() ?? zoom;
-					});
-
-					leafletMap.on('moveend', () => {
-						centre = leafletMap?.getCenter() ?? centre;
-					});
+	function updateLayersControl() {
+		if (leaflet && leafletMap) {
+			baseLayers.forEach((layer, index) => {
+				const tileLayer = leaflet?.tileLayer(layer.url, { attribution: layer.attribution });
+				if (index === 0 && leafletMap) {
+					tileLayer?.addTo(leafletMap);
+				}
+				if (layersControlInstance && tileLayer) {
+					layersControlInstance.addBaseLayer(tileLayer, layer.name);
 				}
 			});
+			leafletMap.on('overlayadd', (e: L.LayersControlEvent) => {
+				layersStore.update((layers) => ({
+					...layers,
+					[e.name]: { ...layers[e.name], visible: true }
+				}));
+			});
 
-			return () => {
-				if (leafletMap) {
-					leafletMap.remove();
-				}
-				if (layersControlInstance) {
-					layersControlInstance.remove();
-				}
-			};
+			leafletMap.on('overlayremove', (e: L.LayersControlEvent) => {
+				layersStore.update((layers) => ({
+					...layers,
+					[e.name]: { ...layers[e.name], visible: false }
+				}));
+			});
+		}
+	}
+
+	onMount(async () => {
+		leaflet = await import('leaflet');
+		if (mapDiv && leaflet) {
+			if (editControl.present) {
+				const geoman = await import('@geoman-io/leaflet-geoman-free');
+			}
+			leafletMap = leaflet.map(mapDiv, {
+				minZoom,
+				maxZoom,
+				zoomSnap,
+				zoomDelta,
+				boxZoom,
+				doubleClickZoom,
+				touchZoom,
+				scrollWheelZoom,
+				dragging,
+				keyboard,
+				zoomControl,
+				attributionControl: attributionControl.present
+			});
+			if (bounds) {
+				leafletMap.fitBounds(bounds);
+			} else if (centre) {
+				leafletMap.setView(centre, zoom);
+			}
+			if (layersControl.present) {
+				layersControlInstance = leaflet.control.layers(undefined, undefined, {
+					position: layersControl.position
+				});
+				leafletMap.addControl(layersControlInstance);
+				layersControlStore.set(layersControlInstance);
+			}
+			updateLayersControl();
+			mapStore.set(leafletMap);
 		}
 	});
-
-	// Methods
-
-	function updateLayersList(layerName: string, layer: L.Layer | null) {
-		if (layer) {
-			layersList[layerName] = layer;
-		} else {
-			if (layerName in layersList) {
-				delete layersList[layerName];
-			}
+	onDestroy(() => {
+		if (leafletMap) {
+			leafletMap.remove();
+			mapStore.set(null);
 		}
-	}
-
-	function updateLayersOptionsList(layerName: string, layerOptions: L.GeoJSONOptions | null) {
-		if (layerOptions) {
-			layersOptionsList[layerName] = layerOptions;
-		} else {
-			if (layerName in layersOptionsList) {
-				delete layersOptionsList[layerName];
-			}
+		if (layersControlInstance) {
+			layersControlInstance.remove();
+			layersStore.set({});
 		}
-	}
-
-	export function getCenter() {
-		return leafletMap?.getCenter();
-	}
-
-	export function getZoom() {
-		return leafletMap?.getZoom();
-	}
-
-	export function setView(center: L.LatLngExpression, zoom: number, options?: L.ZoomPanOptions) {
-		leafletMap?.setView(center, zoom, options);
-	}
-
-	export function setZoom(zoom: number, options?: L.ZoomPanOptions) {
-		leafletMap?.setZoom(zoom, options);
-	}
-
-	export function zoomIn(delta?: number, options?: L.ZoomOptions) {
-		leafletMap?.zoomIn(delta, options);
-	}
-
-	export function zoomOut(delta?: number, options?: L.ZoomOptions) {
-		leafletMap?.zoomOut(delta, options);
-	}
-
-	export function setZoomAround(latlng: L.LatLngExpression, zoom: number, options?: L.ZoomOptions) {
-		leafletMap?.setZoomAround(latlng, zoom, options);
-	}
-
-	export function fitBounds(bounds: L.LatLngBoundsExpression, options?: L.FitBoundsOptions) {
-		leafletMap?.fitBounds(bounds, options);
-	}
-
-	export function fitWorld(options?: L.FitBoundsOptions) {
-		leafletMap?.fitWorld(options);
-	}
-
-	export function panTo(latlng: L.LatLngExpression, options?: L.PanOptions) {
-		leafletMap?.panTo(latlng, options);
-	}
-
-	export function panBy(offset: L.PointExpression, options?: L.PanOptions) {
-		leafletMap?.panBy(offset, options);
-	}
-
-	export function setMaxBounds(bounds: L.LatLngBoundsExpression) {
-		leafletMap?.setMaxBounds(bounds);
-	}
-
-	export function setMinZoom(zoom: number) {
-		leafletMap?.setMinZoom(zoom);
-	}
-
-	export function setMaxZoom(zoom: number) {
-		leafletMap?.setMaxZoom(zoom);
-	}
-
-	export function panInsideBounds(bounds: L.LatLngBoundsExpression, options?: L.PanOptions) {
-		leafletMap?.panInsideBounds(bounds, options);
-	}
-
-	export function invalidateSize(options?: boolean | L.PanInsideOptions) {
-		leafletMap?.invalidateSize(options);
-	}
-
-	export function stop() {
-		leafletMap?.stop();
-	}
+		leafletStore.set(null);
+		layersControlStore.set(null);
+	});
 </script>
 
 <div bind:this={mapDiv} {style}>
 	{#if leaflet && leafletMap}
-		{@render children?.()}
-		{#if legend}
-			<LeafletLegendControl position={legendPosition} />
+		{#if editControl.present}
+			<GeomanControls />
 		{/if}
+		{@render children?.()}
 	{/if}
 </div>

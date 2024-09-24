@@ -18,6 +18,7 @@ export const load: LayoutServerLoad = async ({
 		);
 	const { data: communityRequestOptionsQueryData, error: communityRequestOptionsQueryError } =
 		communityRequestOptionsQuery;
+
 	if (communityRequestOptionsQueryError) {
 		console.log('GET data error Community Request Options:', communityRequestOptionsQueryError);
 		let emailSubject: PostgRestErrorEmailSubject = {

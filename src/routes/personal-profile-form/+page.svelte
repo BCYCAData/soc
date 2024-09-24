@@ -1,32 +1,21 @@
 <script lang="ts">
 	import PersonalProfileFormContainer from '$components/form/personal-emergency-profile/PersonalProfileFormContainer.svelte';
 	import ProgressBar from '$components/form/ProgressBar.svelte';
+	import type { ActionData, PageData } from './$types';
 
-	interface Props {
-		data: any;
-	}
+	type Props = {
+		data: PageData;
+		form: ActionData;
+	};
 
-	let { data }: Props = $props();
+	let { data = $bindable(), form }: Props = $props();
 
 	let currentActive = $state(1);
 	let progressBar: ProgressBar | undefined = $state();
 
-	const {
-		steps,
-		propertyId,
-		communityName,
-		propertyAddress,
-		propertyWasRented,
-		property_profile: propertyProfile,
-		property_agent: propertyAgent,
-		userProfile,
-		user_postal_address: userPostalAddress,
-		community_bcyca_profile: communityBCYCAProfile,
-		community_tinonee_profile: communityTinoneeProfile,
-		community_mondrook_profile: communityMondrookProfile,
-		community_external_profile: communityExternalProfile,
-		optionsData
-	} = data;
+	const propertyWasRented = data.personalProfileFormData.property_profile.property_rented || false;
+
+	const { steps, optionsData } = data;
 
 	const handleProgress = (stepIncrement: number) => {
 		progressBar?.handleProgress(stepIncrement);
@@ -50,18 +39,8 @@
 	<div class="mb-5 bg-secondary-100 sm:w-11/12">
 		<PersonalProfileFormContainer
 			active_step={steps[currentActive - 1].index}
-			{propertyId}
-			{communityName}
-			{propertyAddress}
 			{propertyWasRented}
-			{propertyProfile}
-			{propertyAgent}
-			{userProfile}
-			{userPostalAddress}
-			{communityBCYCAProfile}
-			{communityTinoneeProfile}
-			{communityMondrookProfile}
-			{communityExternalProfile}
+			userProfile={data.personalProfileFormData}
 			{optionsData}
 		/>
 		<div class="mx-auto pt-0 sm:w-8/12">
@@ -84,7 +63,7 @@
 				<button
 					class="scale 98 rounded-xl bg-secondary-500 px-[20px] py-[6px] text-secondary-50 focus:outline-none active:transform disabled:cursor-not-allowed disabled:bg-slate-300"
 					onclick={() => handleProgress(+1)}
-					hidden={currentActive == steps.length}
+					hidden={currentActive == steps?.length}
 				>
 					Next
 				</button>

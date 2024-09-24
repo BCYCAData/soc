@@ -1,6 +1,10 @@
 import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr';
 
-import { getCommunityOptions, type CommunityRequestOption } from '$lib/profileOptions';
+import {
+	getCommunityOptions,
+	type CommunityRequestOption,
+	type TransformedOptionsData
+} from '$lib/profileOptions';
 
 import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import type { LayoutLoad } from './$types';
@@ -42,7 +46,7 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		data: { user }
 	} = await supabase.auth.getUser();
 
-	const communityRequestOptions = getCommunityOptions(
+	const communityRequestOptions: TransformedOptionsData = getCommunityOptions(
 		(data.communityRequestOptionsData as CommunityRequestOption[] | undefined)?.filter(
 			(item) => item.community_request_options_concordance !== null
 		) as CommunityRequestOption[]

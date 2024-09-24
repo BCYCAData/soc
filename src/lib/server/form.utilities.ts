@@ -1,34 +1,34 @@
 import type {
-	UserProfileData,
+	UserProfile,
 	ProfileAboutMeFormData,
 	ProfileMyPlaceFormData,
 	ProfileMyPlaceAssetsFormData,
 	ProfileMyPlaceHazardsFormData,
 	ProfileMyPlaceResourcesFormData,
 	ProfileMyCommunityFormData,
-	CommunityBCYCAProfileData,
+	BCYCACommunityProfile,
 	ProfileMyCommunityBCYCAFormData,
 	ProfileMyCommunityBCYCAEventsFormData,
-	ProfileMyCommunityBCYCAInformationFormData,
+	ProfileMyBCYCACommunityInformationFormData,
 	ProfileMyCommunityBCYCAWorkshopsFormData,
-	CommunityTinoneeProfileData,
+	TinoneeCommunityProfile,
 	ProfileMyCommunityTinoneeFormData,
 	ProfileMyCommunityTinoneeEventsFormData,
 	ProfileMyCommunityTinoneeInformationFormData,
 	ProfileMyCommunityTinoneeWorkshopsFormData,
-	CommunityMondrookProfileData,
+	MondrookCommunityProfile,
 	ProfileMyCommunityMondrookFormData,
 	ProfileMyCommunityMondrookEventsFormData,
 	ProfileMyCommunityMondrookInformationFormData,
 	ProfileMyCommunityMondrookWorkshopsFormData,
-	CommunityExternalProfileData,
+	ExternalCommunityProfile,
 	ProfileMyCommunityExternalFormData,
 	ProfileMyCommunityExternalEventsFormData,
 	ProfileMyCommunityExternalInformationFormData,
 	ProfileMyCommunityExternalWorkshopsFormData,
-	PropertyAgentData,
-	UserPostalAddressData,
-	PropertyProfileData
+	PropertyAgent,
+	UserPostalAddress,
+	PropertyProfile
 } from '$lib/types';
 
 export const getAboutMeFormData = (body: FormData) => {
@@ -142,7 +142,7 @@ export const getMyCommunityBCYCAEventsFormData = (body: FormData) => {
 	return bcycaCommunityEventsData;
 };
 export const getMyCommunityBCYCAInformationFormData = (body: FormData) => {
-	const bcycaCommunityInformationData: ProfileMyCommunityBCYCAInformationFormData = {
+	const bcycaCommunityInformationData: ProfileMyBCYCACommunityInformationFormData = {
 		information_sheet_choices:
 			body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
 		other_information_sheet: (body.get('other_information_sheet') as string) || null
@@ -279,162 +279,163 @@ export const getMyCommunityExternalWorkshopsFormData = (body: FormData) => {
 	return formData;
 };
 
-export const getPersonalProfileFormData = (body: FormData) => {
-	const propertyId = body.get('propertyId') as string;
-	const communityName = body.get('communityName') as string;
-	const communityProfileId = body.get('communityProfileId') as string;
-	let propertyWasRented: boolean;
-	if ((body.get('propertyWasRented') as string) == 'false') {
-		propertyWasRented = false;
-	} else {
-		propertyWasRented = true;
-	}
-	const agentData: PropertyAgentData = {
-		agent_mobile: (body.get('agent_mobile') as string) || null,
-		agent_name: (body.get('agent_name') as string) || null,
-		agent_phone: (body.get('agent_phone') as string) || null
-	};
-	const propertyProfileData: PropertyProfileData = {
-		fire_fighting_resources:
-			body.getAll('fire_fighting_resources').toString().split(',').map(Number) || null,
-		fire_hazard_reduction:
-			body.getAll('fire_hazard_reduction').toString().split(',').map(Number) || null,
-		have_stortz: (body.get('have_stortz') as string) || null,
-		land_adjacent_hazard: (body.get('land_adjacent_hazard') as string) || null,
-		live_stock_present: (body.get('live_stock_present') as unknown as boolean) || null,
-		live_stock_safe_area: (body.get('live_stock_safe_area') as string) || null,
-		mobile_reception: parseInt(body.get('mobile_reception') as string) || null,
-		number_birds: parseInt(body.get('number_birds') as string) || null,
-		number_cats: parseInt(body.get('number_cats') as string) || null,
-		number_dogs: parseInt(body.get('number_dogs') as string) || null,
-		number_other_pets: parseInt(body.get('number_other_pets') as string) || null,
-		other_essential_assets: (body.get('other_essential_assets') as string) || null,
-		other_hazards: (body.get('other_hazards') as string) || null,
-		other_site_hazards: (body.get('other_site_hazards') as string) || null,
-		phone: (body.get('phone') as string) || null,
-		property_rented: body.get('property_rented') as unknown as boolean,
-		residents0_18: parseInt(body.get('residents0_18') as string) || null,
-		residents19_50: parseInt(body.get('residents19_50') as string) || null,
-		residents51_70: parseInt(body.get('residents51_70') as string) || null,
-		residents71_: parseInt(body.get('residents71_') as string) || null,
-		share_livestock_safe_area: (body.get('share_livestock_safe_area') as string) || null,
-		sign_posted: (body.get('sign_posted') as unknown as boolean) || null,
-		site_hazards: body.getAll('site_hazards').toString().split(',').map(Number) || null,
-		static_water_available:
-			body.getAll('static_water_available').toString().split(',').map(Number) || null,
-		stortz_size: parseInt(body.get('stortz_size') as string) || null,
-		truck_access: parseInt(body.get('truck_access') as string) || null,
-		truck_access_other_information: (body.get('truck_access_other_information') as string) || null,
-		vulnerable_residents: (body.get('vulnerable_residents') as unknown as boolean) || null
-	};
-	let userBCYCAProfileData: CommunityBCYCAProfileData = null;
-	let userTinoneeProfileData: CommunityTinoneeProfileData = null;
-	let userMondrookProfileData: CommunityMondrookProfileData = null;
-	let userExternalProfileData: CommunityExternalProfileData = null;
-	switch (communityName) {
-		case 'BCYCA':
-			userBCYCAProfileData = {
-				bcyca_profile_id: communityProfileId || null,
-				community_meeting_choices:
-					body.getAll('community_meeting_choices').toString().split(',').map(Number) || null,
-				community_workshop_choices:
-					body.getAll('community_workshop_choices').toString().split(',').map(Number) || null,
-				information_sheet_choices:
-					body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
-				stay_in_touch_choices:
-					body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-				other_community_meeting: (body.get('other_community_meeting') as string) || null,
-				other_community_workshop: (body.get('other_community_workshop') as string) || null,
-				other_information_sheet: (body.get('other_information_sheet') as string) || null,
-				will_run_community_workshops: (body.get('will_run_community_workshops') as string) || null
-			};
-			break;
-		case 'Tinonee':
-			userTinoneeProfileData = {
-				tinonee_profile_id: communityProfileId || null,
-				community_meeting_choices:
-					body.getAll('community_meeting_choices').toString().split(',').map(Number) || null,
-				community_workshop_choices:
-					body.getAll('community_workshop_choices').toString().split(',').map(Number) || null,
-				information_sheet_choices:
-					body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
-				stay_in_touch_choices:
-					body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-				other_community_meeting: (body.get('other_community_meeting') as string) || null,
-				other_community_workshop: (body.get('other_community_workshop') as string) || null,
-				other_information_sheet: (body.get('other_information_sheet') as string) || null,
-				will_run_community_workshops: (body.get('will_run_community_workshops') as string) || null
-			};
+// export const getPersonalProfileFormData = (body: FormData) => {
+// 	const propertyId = body.get('propertyId') as string;
+// 	const communityName = body.get('communityName') as string;
+// 	const communityProfileId = body.get('communityProfileId') as string;
+// 	let propertyWasRented: boolean;
+// 	if ((body.get('propertyWasRented') as string) == 'false') {
+// 		propertyWasRented = false;
+// 	} else {
+// 		propertyWasRented = true;
+// 	}
+// 	const agentData = {
+// 		agent_mobile: (body.get('agent_mobile') as string) || null,
+// 		agent_name: (body.get('agent_name') as string) || null,
+// 		agent_phone: (body.get('agent_phone') as string) || null
+// 	};
+// 	const propertyProfileData = {
+// 		fire_fighting_resources:
+// 			body.getAll('fire_fighting_resources').toString().split(',').map(Number) || null,
+// 		fire_hazard_reduction:
+// 			body.getAll('fire_hazard_reduction').toString().split(',').map(Number) || null,
+// 		have_stortz: (body.get('have_stortz') as string) || null,
+// 		land_adjacent_hazard: (body.get('land_adjacent_hazard') as string) || null,
+// 		live_stock_present: (body.get('live_stock_present') as unknown as boolean) || null,
+// 		live_stock_safe_area: (body.get('live_stock_safe_area') as string) || null,
+// 		mobile_reception: parseInt(body.get('mobile_reception') as string) || null,
+// 		number_birds: parseInt(body.get('number_birds') as string) || null,
+// 		number_cats: parseInt(body.get('number_cats') as string) || null,
+// 		number_dogs: parseInt(body.get('number_dogs') as string) || null,
+// 		number_other_pets: parseInt(body.get('number_other_pets') as string) || null,
+// 		other_essential_assets: (body.get('other_essential_assets') as string) || null,
+// 		other_hazards: (body.get('other_hazards') as string) || null,
+// 		other_site_hazards: (body.get('other_site_hazards') as string) || null,
+// 		phone: (body.get('phone') as string) || null,
+// 		property_rented: body.get('property_rented') as unknown as boolean,
+// 		residents0_18: parseInt(body.get('residents0_18') as string) || null,
+// 		residents19_50: parseInt(body.get('residents19_50') as string) || null,
+// 		residents51_70: parseInt(body.get('residents51_70') as string) || null,
+// 		residents71_: parseInt(body.get('residents71_') as string) || null,
+// 		share_livestock_safe_area: (body.get('share_livestock_safe_area') as string) || null,
+// 		sign_posted: (body.get('sign_posted') as unknown as boolean) || null,
+// 		site_hazards: body.getAll('site_hazards').toString().split(',').map(Number) || null,
+// 		static_water_available:
+// 			body.getAll('static_water_available').toString().split(',').map(Number) || null,
+// 		stortz_size: parseInt(body.get('stortz_size') as string) || null,
+// 		truck_access: parseInt(body.get('truck_access') as string) || null,
+// 		truck_access_other_information: (body.get('truck_access_other_information') as string) || null,
+// 		vulnerable_residents: (body.get('vulnerable_residents') as unknown as boolean) || null
+// 	};
+// 	let userBCYCAProfileData = null;
+// 	let userTinoneeProfileData = null;
+// 	let userMondrookProfileData = null;
+// 	let userExternalProfileData = null;
 
-			break;
-		case 'Mondrook':
-			userMondrookProfileData = {
-				mondrook_profile_id: communityProfileId || null,
-				community_meeting_choices:
-					body.getAll('community_meeting_choices').toString().split(',').map(Number) || null,
-				community_workshop_choices:
-					body.getAll('community_workshop_choices').toString().split(',').map(Number) || null,
-				information_sheet_choices:
-					body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
-				stay_in_touch_choices:
-					body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-				other_community_meeting: (body.get('other_community_meeting') as string) || null,
-				other_community_workshop: (body.get('other_community_workshop') as string) || null,
-				other_information_sheet: (body.get('other_information_sheet') as string) || null,
-				will_run_community_workshops: (body.get('will_run_community_workshops') as string) || null
-			};
-			break;
-		case 'External':
-			userExternalProfileData = {
-				external_profile_id: communityProfileId || null,
-				community_meeting_choices:
-					body.getAll('community_meeting_choices').toString().split(',').map(Number) || null,
-				community_workshop_choices:
-					body.getAll('community_workshop_choices').toString().split(',').map(Number) || null,
-				information_sheet_choices:
-					body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
-				stay_in_touch_choices:
-					body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-				other_community_meeting: (body.get('other_community_meeting') as string) || null,
-				other_community_workshop: (body.get('other_community_workshop') as string) || null,
-				other_information_sheet: (body.get('other_information_sheet') as string) || null,
-				will_run_community_workshops: (body.get('will_run_community_workshops') as string) || null
-			};
-			break;
-		default:
-			break;
-	}
-	const userPostalAddressData: UserPostalAddressData = {
-		postal_address_postcode: (body.get('postal_address_postcode') as string) || null,
-		postal_address_street: (body.get('postal_address_street') as string) || null,
-		postal_address_suburb: (body.get('postal_address_suburb') as string) || null
-	};
-	const userProfileData: UserProfileData = {
-		family_name: (body.get('family_name') as string) || null,
-		fire_fighting_experience: parseInt(body.get('fire_fighting_experience') as string) || null,
-		fire_trauma: (body.get('fire_trauma') as unknown as boolean) || null,
-		first_name: (body.get('first_name') as string) || null,
-		mobile: (body.get('mobile') as string) || null,
-		plan_to_leave_before_fire: parseInt(body.get('plan_to_leave_before_fire') as string) || null,
-		plan_to_leave_before_flood: parseInt(body.get('plan_to_leave_before_flood') as string) || null,
-		residency_profile: parseInt(body.get('residency_profile') as string) || null,
-		rfs_survival_plan: (body.get('rfs_survival_plan') as string) || null,
-		stay_in_touch_choices:
-			body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-		other_comments: (body.get('other_comments') as string) || null
-	};
-	return {
-		propertyId,
-		communityName,
-		communityProfileId,
-		propertyWasRented,
-		agentData,
-		propertyProfileData,
-		userBCYCAProfileData,
-		userTinoneeProfileData,
-		userMondrookProfileData,
-		userExternalProfileData,
-		userPostalAddressData,
-		userProfileData
-	};
-};
+// 	switch (communityName) {
+// 		case 'BCYCA':
+// 			userBCYCAProfileData = {
+// 				bcyca_profile_id: communityProfileId,
+// 				community_meeting_choices:
+// 					body.getAll('community_meeting_choices').toString().split(',').map(Number) || null,
+// 				community_workshop_choices:
+// 					body.getAll('community_workshop_choices').toString().split(',').map(Number) || null,
+// 				information_sheet_choices:
+// 					body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
+// 				stay_in_touch_choices:
+// 					body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
+// 				other_community_meeting: (body.get('other_community_meeting') as string) || null,
+// 				other_community_workshop: (body.get('other_community_workshop') as string) || null,
+// 				other_information_sheet: (body.get('other_information_sheet') as string) || null,
+// 				will_run_community_workshops: (body.get('will_run_community_workshops') as string) || null
+// 			};
+// 			break;
+// 		case 'Tinonee':
+// 			userTinoneeProfileData = {
+// 				tinonee_profile_id: communityProfileId || null,
+// 				community_meeting_choices:
+// 					body.getAll('community_meeting_choices').toString().split(',').map(Number) || null,
+// 				community_workshop_choices:
+// 					body.getAll('community_workshop_choices').toString().split(',').map(Number) || null,
+// 				information_sheet_choices:
+// 					body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
+// 				stay_in_touch_choices:
+// 					body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
+// 				other_community_meeting: (body.get('other_community_meeting') as string) || null,
+// 				other_community_workshop: (body.get('other_community_workshop') as string) || null,
+// 				other_information_sheet: (body.get('other_information_sheet') as string) || null,
+// 				will_run_community_workshops: (body.get('will_run_community_workshops') as string) || null
+// 			};
+
+// 			break;
+// 		case 'Mondrook':
+// 			userMondrookProfileData = {
+// 				mondrook_profile_id: communityProfileId || null,
+// 				community_meeting_choices:
+// 					body.getAll('community_meeting_choices').toString().split(',').map(Number) || null,
+// 				community_workshop_choices:
+// 					body.getAll('community_workshop_choices').toString().split(',').map(Number) || null,
+// 				information_sheet_choices:
+// 					body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
+// 				stay_in_touch_choices:
+// 					body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
+// 				other_community_meeting: (body.get('other_community_meeting') as string) || null,
+// 				other_community_workshop: (body.get('other_community_workshop') as string) || null,
+// 				other_information_sheet: (body.get('other_information_sheet') as string) || null,
+// 				will_run_community_workshops: (body.get('will_run_community_workshops') as string) || null
+// 			};
+// 			break;
+// 		case 'External':
+// 			userExternalProfileData = {
+// 				external_profile_id: communityProfileId || null,
+// 				community_meeting_choices:
+// 					body.getAll('community_meeting_choices').toString().split(',').map(Number) || null,
+// 				community_workshop_choices:
+// 					body.getAll('community_workshop_choices').toString().split(',').map(Number) || null,
+// 				information_sheet_choices:
+// 					body.getAll('information_sheet_choices').toString().split(',').map(Number) || null,
+// 				stay_in_touch_choices:
+// 					body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
+// 				other_community_meeting: (body.get('other_community_meeting') as string) || null,
+// 				other_community_workshop: (body.get('other_community_workshop') as string) || null,
+// 				other_information_sheet: (body.get('other_information_sheet') as string) || null,
+// 				will_run_community_workshops: (body.get('will_run_community_workshops') as string) || null
+// 			};
+// 			break;
+// 		default:
+// 			break;
+// 	}
+// 	const userPostalAddressData: UserPostalAddress = {
+// 		postal_address_postcode: (body.get('postal_address_postcode') as string) || null,
+// 		postal_address_street: body.get('postal_address_street') as string,
+// 		postal_address_suburb: body.get('postal_address_suburb') as string
+// 	};
+// 	const userProfileData: UserProfile = {
+// 		family_name: (body.get('family_name') as string) || null,
+// 		fire_fighting_experience: parseInt(body.get('fire_fighting_experience') as string) || null,
+// 		fire_trauma: (body.get('fire_trauma') as unknown as boolean) || null,
+// 		first_name: (body.get('first_name') as string) || null,
+// 		mobile: (body.get('mobile') as string) || null,
+// 		plan_to_leave_before_fire: parseInt(body.get('plan_to_leave_before_fire') as string) || null,
+// 		plan_to_leave_before_flood: parseInt(body.get('plan_to_leave_before_flood') as string) || null,
+// 		residency_profile: parseInt(body.get('residency_profile') as string) || null,
+// 		rfs_survival_plan: (body.get('rfs_survival_plan') as string) || null,
+// 		stay_in_touch_choices:
+// 			body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
+// 		other_comments: (body.get('other_comments') as string) || null
+// 	};
+// 	return {
+// 		propertyId,
+// 		communityName,
+// 		communityProfileId,
+// 		propertyWasRented,
+// 		agentData,
+// 		propertyProfileData,
+// 		userBCYCAProfileData,
+// 		userTinoneeProfileData,
+// 		userMondrookProfileData,
+// 		userExternalProfileData,
+// 		userPostalAddressData,
+// 		userProfileData
+// 	};
+// };

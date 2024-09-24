@@ -1,42 +1,31 @@
 <script lang="ts">
 	import TextAreaInput from '../inputs/TextAreaInput.svelte';
 
-	import type { UserPostalAddressData, UserProfileData } from '$lib/types';
 	import { setUpperCase } from '$lib/svelte-actions';
 
-	interface Props {
-		userProfile: UserProfileData;
-		userPostalAddress: UserPostalAddressData;
+	import type { PersonalProfileFormData } from '$lib/form.types';
+
+	type Props = {
+		userProfile: PersonalProfileFormData;
 		communityName?: string;
 		userProfileStayInTouchOptions?: { value: string; lable: string }[];
-	}
+	};
 
 	let {
 		userProfile = $bindable(),
-		userPostalAddress = $bindable(),
 		communityName = '',
 		userProfileStayInTouchOptions = []
 	}: Props = $props();
-
-	let localUserProfile = $state({ ...userProfile });
-	let localUserPostalAddress = $state({ ...userPostalAddress });
-
-	$effect(() => {
-		Object.assign(userProfile, localUserProfile);
-		if (userPostalAddress !== null) {
-			Object.assign(userPostalAddress, localUserPostalAddress);
-		}
-	});
 
 	const postalWasChecked = $state(userProfile.stay_in_touch_choices?.includes(5));
 
 	let postalChecked = $state(false);
 	$effect.pre(() => {
-		postalChecked = localUserProfile.stay_in_touch_choices?.includes(5) ?? false;
+		postalChecked = userProfile.stay_in_touch_choices?.includes(5) ?? false;
 	});
 </script>
 
-<h2 class="unstyled text-scale-6 mb-1 mt-2 font-semibold text-surface-950">
+<h2 class="h2 mb-1 mt-2 text-lg font-semibold text-surface-950">
 	How would you prefer to stay in touch with the <span class="text-orange-600"
 		>Strengthen OUR Community</span
 	>
@@ -57,14 +46,13 @@
 				name="stay_in_touch_choices"
 				type="checkbox"
 				onchange={() => {
-					postalChecked = localUserProfile.stay_in_touch_choices?.includes(5) ?? false;
+					postalChecked = userProfile.stay_in_touch_choices?.includes(5) ?? false;
 				}}
-				bind:group={localUserProfile.stay_in_touch_choices}
-				{value}
+				bind:group={userProfile.stay_in_touch_choices}
+				value={Number(value)}
+				checked={userProfile?.stay_in_touch_choices?.includes(Number(value))}
 			/>
-			<label
-				class="font-Poppins text-scale-6 ml-2 font-medium text-orange-900"
-				for="stay_in_touch_choices"
+			<label class="text-scale-6 ml-2 font-medium text-orange-900" for="stay_in_touch_choices"
 				>{lable}
 			</label>
 		</div>
@@ -79,7 +67,7 @@
 		<div class="flex items-center">
 			<label
 				hidden={!postalChecked}
-				class="unstyled font-Poppins text-scale-5 px-3 text-primary-700"
+				class="px-3 text-lg font-semibold text-primary-700"
 				for="postal_address_street">ADDRESS</label
 			>
 		</div>
@@ -94,7 +82,7 @@
 				autocomplete="street-address"
 				use:setUpperCase
 				style="text-transform:uppercase"
-				value={localUserPostalAddress?.postal_address_street}
+				value={userProfile.user_postal_address?.postal_address_street}
 			/>
 		</div>
 	</div>
@@ -104,7 +92,7 @@
 			<div class="flex items-center">
 				<label
 					hidden={!postalChecked}
-					class="unstyled font-Poppins text-scale-5 pl-2 text-primary-700"
+					class="px-3 pl-2 text-lg font-semibold text-primary-700"
 					for="property_address_suburb">SUBURB</label
 				>
 			</div>
@@ -119,13 +107,13 @@
 					autocomplete="address-level2"
 					use:setUpperCase
 					style="text-transform:uppercase"
-					value={localUserPostalAddress?.postal_address_suburb}
+					value={userProfile.user_postal_address?.postal_address_suburb}
 				/>
 			</div>
 			<div class="col-span-2 flex items-center">
 				<label
 					hidden={!postalChecked}
-					class="unstyled font-Poppins text-scale-5 text-primary-700 sm:pl-16"
+					class="px-3 text-lg font-semibold text-primary-700 sm:pl-16"
 					for="postal_address_postcode">POSTCODE</label
 				>
 			</div>
@@ -139,19 +127,19 @@
 					placeholder="POSTCODE"
 					autocomplete="postal-code"
 					style="text-transform:uppercase"
-					value={localUserPostalAddress?.postal_address_postcode}
+					value="userProfile.user_postal_address?.postal_address_postcode}"
 				/>
 			</div>
 		</div>
 	</div>
 </div>
 <TextAreaInput
-	headingClass="unstyled mb-1 text-scale-6 font-semibold text-surface-950"
+	headingClass="h2 mb-1 text-lgfont-semibold text-surface-950"
 	headingText="Do you have any other comments that you would like to add?"
 	lableClass={null}
 	lableText={null}
 	divClass="p-2 rounded-lg bg-secondary-200 sm:text-scale-5"
 	nameText="other_comments"
 	textAreaClass="w-full resize-y sm:text-scale-5"
-	bind:inputValue={localUserProfile.other_comments}
+	bind:inputValue={userProfile.other_comments}
 />

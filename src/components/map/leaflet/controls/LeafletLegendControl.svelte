@@ -1,134 +1,185 @@
 <script lang="ts">
 	import { onMount, onDestroy, getContext } from 'svelte';
-	import type L from 'leaflet';
-	import { LegendControl } from '$lib/leaflet/leafletlegendcontrol';
+	import L from 'leaflet';
+	import { LeafletLegendControlClass } from '$lib/leaflet/leafletlegendcontrol';
+	import type { Writable } from 'svelte/store';
+
+	interface LegendItem {
+		symbol: string;
+		description: string;
+	}
+
+	interface GroupedLegendItem {
+		groupName: string;
+		items: LegendItem[];
+	}
+
+	interface LegendInfo {
+		items: (LegendItem | GroupedLegendItem)[];
+	}
+
+	interface LayerInfo {
+		layer: L.Layer;
+		visible: boolean;
+		editable: boolean;
+		showInLegend: boolean;
+		legendInfo: LegendInfo;
+	}
 
 	interface Props {
 		position?: L.ControlPosition;
 	}
 
-	let { position = 'bottomright' }: Props = $props();
+	let { position = 'bottomleft' }: Props = $props();
 
+	let leafletMap: L.Map;
+	let leaflet: typeof L;
 	const { getLeaflet, getLeafletMap, getLeafletLayers } = getContext<{
 		getLeaflet: () => typeof L;
 		getLeafletMap: () => L.Map;
-		getLeafletLayers: () => Record<string, L.Layer>;
+		getLeafletLayers: () => Writable<Record<string, LayerInfo>>;
 	}>('leafletContext');
 
-	let leaflet: typeof L;
-	let leafletMap: L.Map;
-	let legendControl: LegendControl;
+	const layersStore: Writable<Record<string, LayerInfo>> = getLeafletLayers();
+
+	let addedLayers = new Set<string>();
+	let customControl: LeafletLegendControlClass;
 
 	onMount(() => {
-		leaflet = getLeaflet();
+		let unsubscribe: (() => void) | undefined;
 		leafletMap = getLeafletMap();
-		legendControl = new LegendControl(leaflet, { position });
-		legendControl.addTo(leafletMap);
-	});
+		leaflet = getLeaflet();
+		customControl = new LeafletLegendControlClass(leafletMap, layersStore, { position });
+		leafletMap.addControl(customControl);
 
-	$effect(() => {
-		const layers = getLeafletLayers();
-		Object.entries(layers).forEach(([name, layer]) => {
-			if (layer instanceof leaflet.GeoJSON) {
-				updateGeoJSONLegend(name, layer);
-			}
-		});
-	});
-
-	$effect(() => {
-		leafletMap.on('layeradd layerremove', (e: L.LayerEvent) => {
-			if (e.layer instanceof leaflet.GeoJSON && 'options' in e.layer && 'name' in e.layer.options) {
-				const layerName = e.layer.options.name;
-				if (typeof layerName === 'string') {
-					legendControl.setVisibility(layerName, e.type === 'layeradd');
+		unsubscribe = layersStore.subscribe((layers: Record<string, LayerInfo>) => {
+			Object.entries(layers).forEach(([name, layerInfo]) => {
+				if (layerInfo.showInLegend && !addedLayers.has(name)) {
+					updateLegend(name, layerInfo.legendInfo, layerInfo.visible);
+					addedLayers.add(name);
 				}
-			}
+			});
 		});
 
 		return () => {
-			leafletMap.off('layeradd layerremove');
+			if (unsubscribe) unsubscribe();
 		};
 	});
 
-	function updateGeoJSONLegend(name: string, layer: L.GeoJSON) {
-		const style = layer.options.style;
-		if (typeof style === 'function') {
-			const uniqueStyles = new Map();
-			layer.eachLayer((feature: L.Layer) => {
-				if (feature instanceof leaflet.Path && 'feature' in feature && feature.feature) {
-					const featureStyle = style(feature.feature as GeoJSON.Feature);
-					const key = JSON.stringify(featureStyle);
-					if (!uniqueStyles.has(key)) {
-						uniqueStyles.set(key, {
-							style: featureStyle,
-							name: getStyleName(feature.feature as GeoJSON.Feature, featureStyle)
-						});
-					}
-				}
-			});
+	function updateLegend(name: string, legendInfo: LegendInfo, visible: boolean) {
+		legendInfo.items.forEach((item) => {
+			if ('groupName' in item) {
+				// It's a GroupedLegendItem
+				const groupElement = document.createElement('div');
+				groupElement.className = 'legend-group';
+				const groupTitle = document.createElement('h4');
+				groupTitle.textContent = item.groupName;
+				groupElement.appendChild(groupTitle);
 
-			uniqueStyles.forEach((value, key) => {
-				const symbolElement = createSymbolElement(value.style);
-				legendControl.addLegendItem({
-					name: `${name}: ${value.name}`,
-					symbol: symbolElement as unknown as HTMLElement,
-					visible: leafletMap.hasLayer(layer)
+				item.items.forEach((subItem) => {
+					const itemElement = createLegendItemElement(subItem, visible);
+					groupElement.appendChild(itemElement);
 				});
-			});
-		} else if (style) {
-			const symbolElement = createSymbolElement(style);
-			legendControl.addLegendItem({
-				name: name,
-				symbol: symbolElement as unknown as HTMLElement,
-				visible: leafletMap.hasLayer(layer)
-			});
-		}
+
+				customControl.addLegendContent(name, groupElement);
+			} else {
+				// It's a LegendItem
+				const itemElement = createLegendItemElement(item, visible);
+				customControl.addLegendContent(name, itemElement);
+			}
+		});
+	}
+	interface LegendItem {
+		symbol: string;
+		description: string;
 	}
 
-	function createSymbolElement(style: L.PathOptions): SVGSVGElement {
-		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-		svg.setAttribute('width', '20');
-		svg.setAttribute('height', '20');
+	function createLegendItemElement(
+		item: LegendItem,
+		visible: boolean,
+		verticalSpacing: number = 0
+	): HTMLElement {
+		const itemElement = document.createElement('div');
+		itemElement.className = 'legend-item';
+		itemElement.style.cssText = `
+				opacity: ${visible ? '1' : '0.5'};
+				display: flex;
+				align-items: center;
+				margin-bottom: ${verticalSpacing}px;
+				padding: ${verticalSpacing / 2}px 0;
+			`;
 
-		const shape = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-		shape.setAttribute('width', '20');
-		shape.setAttribute('height', '20');
-		shape.setAttribute('fill', style.fillColor || style.color || '#000000');
-		shape.setAttribute('stroke', style.color || '#000000');
-		shape.setAttribute('stroke-width', style.weight?.toString() || '1');
+		const symbolContainer = document.createElement('div');
+		symbolContainer.className = 'symbol-container';
+		symbolContainer.style.cssText = `
+			width: 30px;
+			height: 20px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-right: 10px;
+		`;
 
-		svg.appendChild(shape);
-		return svg;
+		const symbolElement = document.createElement('span');
+		symbolElement.className = 'legend-symbol';
+		symbolElement.innerHTML = item.symbol;
+
+		symbolContainer.appendChild(symbolElement);
+
+		const descriptionElement = document.createElement('span');
+		descriptionElement.className = 'legend-description';
+		descriptionElement.textContent = item.description;
+		descriptionElement.style.flex = '1';
+
+		itemElement.appendChild(symbolContainer);
+		itemElement.appendChild(descriptionElement);
+
+		return itemElement;
 	}
 
-	function getStyleName(feature: GeoJSON.Feature, style: L.PathOptions): string {
-		return feature.properties?.category || 'Default';
+	// Function to create multiple legend items with custom spacing
+	function createLegendItems(items: LegendItem[], verticalSpacing: number = 0): DocumentFragment {
+		const fragment = document.createDocumentFragment();
+
+		items.forEach((item, index) => {
+			const itemElement = createLegendItemElement(item, true, verticalSpacing);
+
+			// Remove margin-bottom from the last item
+			if (index === items.length - 1) {
+				itemElement.style.marginBottom = '0';
+			}
+
+			fragment.appendChild(itemElement);
+		});
+
+		return fragment;
 	}
+
+	// function createLegendItemElement(item: LegendItem, visible: boolean): HTMLElement {
+	// 	const itemElement = document.createElement('div');
+	// 	itemElement.className = 'legend-item';
+	// 	itemElement.style.opacity = visible ? '1' : '0.5';
+	// 	itemElement.style.display = 'flex';
+	// 	itemElement.style.alignItems = 'center';
+
+	// 	const symbolElement = document.createElement('span');
+	// 	symbolElement.className = 'legend-symbol';
+	// 	symbolElement.innerHTML = item.symbol;
+	// 	symbolElement.style.marginRight = '5px';
+
+	// 	const descriptionElement = document.createElement('span');
+	// 	descriptionElement.className = 'legend-description';
+	// 	descriptionElement.textContent = item.description;
+
+	// 	itemElement.appendChild(symbolElement);
+	// 	itemElement.appendChild(descriptionElement);
+
+	// 	return itemElement;
+	// }
 
 	onDestroy(() => {
-		if (legendControl && leafletMap) {
-			leafletMap.removeControl(legendControl);
+		if (leafletMap && customControl) {
+			leafletMap.removeControl(customControl);
 		}
 	});
 </script>
-
-<style>
-	:global(.legend) {
-		background: white;
-		padding: 10px;
-		border-radius: 5px;
-		border: 2px solid rgba(0, 0, 0, 0.2);
-	}
-	:global(.legend-item) {
-		display: flex;
-		align-items: center;
-		margin-bottom: 5px;
-	}
-	:global(.legend-symbol) {
-		margin-right: 5px;
-	}
-	:global(.legend-item .hidden) {
-		color: #999;
-		text-decoration: line-through;
-	}
-</style>

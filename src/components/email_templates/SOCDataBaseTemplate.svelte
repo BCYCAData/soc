@@ -21,11 +21,11 @@
 		information = 'SOC Data Information'
 	}
 
-	interface Props {
+	type Props = {
 		titleType?: TitleType;
 		subjectText: PostgRestErrorEmailSubject;
 		postgRestError?: PostgrestError;
-	}
+	};
 
 	let {
 		titleType = TitleType.databaseError,
@@ -64,7 +64,7 @@
 		'align-items': 'center'
 	};
 
-	const image = { 'margin-right': '10px' };
+	const image = { marginRight: '10px' };
 
 	const heading = {
 		fontFamily,

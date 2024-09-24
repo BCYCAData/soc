@@ -1,7 +1,7 @@
 <script lang="ts">
-	interface Props {
+	type Props = {
 		validEmail: boolean;
-	}
+	};
 
 	let { validEmail = $bindable() }: Props = $props();
 

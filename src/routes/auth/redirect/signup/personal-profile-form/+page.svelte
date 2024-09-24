@@ -1,11 +1,13 @@
 <script lang="ts">
-	interface Props {
-		data: any;
-	}
+	import type { PageData } from './$types';
+
+	type Props = {
+		data: PageData;
+	};
 
 	let { data }: Props = $props();
 
-	let havePersonalProfile = data.user.app_metadata.havePersonalProfile;
+	let havePersonalProfile = data.user?.app_metadata.havePersonalProfile;
 </script>
 
 <div class="mx-auto mt-5 flex h-full max-w-3xl flex-col items-center text-center sm:mt-1">

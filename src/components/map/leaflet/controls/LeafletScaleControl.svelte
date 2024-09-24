@@ -3,13 +3,13 @@
 
 	import type L from 'leaflet';
 
-	interface Props {
+	type Props = {
 		position?: L.ControlPosition;
 		maxWidth?: number;
 		metric?: boolean;
 		imperial?: boolean;
 		updateWhenIdle?: boolean;
-	}
+	};
 
 	let {
 		position = 'bottomleft',
@@ -30,7 +30,9 @@
 	onMount(async () => {
 		const leaflet = getLeaflet();
 		const leafletMap = getLeafletMap();
-		if (!scaleControl) {
+		const haveScaleControl =
+			leafletMap.getContainer().querySelector('.leaflet-control-scale') !== null;
+		if (!haveScaleControl) {
 			scaleControl = leaflet.control
 				.scale({
 					position,

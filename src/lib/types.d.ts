@@ -17,22 +17,16 @@ export type APIData = {
 	kyng: string;
 };
 
-export type Step = {
-	index: number;
-	text: string;
-	page: string;
-};
-
-export type Crumb = {
-	label: string;
-	href: string;
+export type MenuIcon = {
+	icon?: typeof User | typeof TextIcon;
+	letter?: string;
 };
 
 export type ProfileMenuItem = {
 	id: string;
 	name: string;
 	link: string;
-	icon: string;
+	icon: MenuIcon;
 	initialOpen?: boolean;
 	subItems?: ProfileMenuItem[];
 };
@@ -41,7 +35,7 @@ export type AdminMenuItem = {
 	id: string;
 	name: string;
 	link: string;
-	icon: string | null;
+	icon: MenuIcon;
 	permission: string;
 	initialOpen?: boolean;
 	subItems?: AdminMenuItem[];
@@ -49,11 +43,36 @@ export type AdminMenuItem = {
 
 //---------Personal Profile Form-----------------
 export type PropertyAddress = {
-	property_address_postcode: string;
 	property_address_street: string;
 	property_address_suburb: string;
+	property_address_postcode: string | null;
 };
-export type PropertyProfileData = {
+
+export type UserPostalAddress = {
+	postal_address_street: string;
+	postal_address_suburb: string;
+	postal_address_postcode: string | null;
+} | null;
+
+export type PropertyAgent = {
+	agent_name: string | null;
+	agent_mobile: string | null;
+	agent_phone: string | null;
+} | null;
+
+export type KyngArea = {
+	kyng: string;
+};
+
+export type KyngAreas = KyngArea[];
+
+export type CommunityArea = {
+	community: string;
+};
+
+export type CommunityAreas = CommunityArea[];
+
+export type PropertyProfile = {
 	fire_fighting_resources: number[] | null;
 	fire_hazard_reduction: number[] | null;
 	have_stortz: string | null;
@@ -69,7 +88,11 @@ export type PropertyProfileData = {
 	other_hazards: string | null;
 	other_site_hazards: string | null;
 	phone: string | null;
-	property_rented: boolean;
+	property_address_postcode: string | null;
+	property_address_street: string;
+	property_address_suburb: string;
+	property_rented: boolean | null;
+	property_agent: PropertyAgent | null;
 	residents0_18: number | null;
 	residents19_50: number | null;
 	residents51_70: number | null;
@@ -82,73 +105,87 @@ export type PropertyProfileData = {
 	truck_access: number | null;
 	truck_access_other_information: string | null;
 	vulnerable_residents: boolean | null;
+	id: string;
+	kyng_areas: KyngAreas | null;
+	community_areas: CommunityAreas | null;
 };
-export type PropertyAgentData = {
-	agent_mobile: string | null;
-	agent_name: string | null;
-	agent_phone: string | null;
-};
-export type CommunityBCYCAProfileData = {
-	bcyca_profile_id: any;
-	community_meeting_choices: number[] | null;
-	community_workshop_choices: number[] | null;
-	information_sheet_choices: number[] | null;
-	other_community_meeting: string | null;
-	other_community_workshop: string | null;
-	other_information_sheet: string | null;
-	stay_in_touch_choices: number[] | null;
-	will_run_community_workshops: string | null;
-} | null;
-export type CommunityTinoneeProfileData = {
-	tinonee_profile_id: any;
-	community_meeting_choices: number[] | null;
-	community_workshop_choices: number[] | null;
-	information_sheet_choices: number[] | null;
-	other_community_meeting: string | null;
-	other_community_workshop: string | null;
-	other_information_sheet: string | null;
-	stay_in_touch_choices: number[] | null;
-	will_run_community_workshops: string | null;
-} | null;
-export type CommunityMondrookProfileData = {
-	mondrook_profile_id: any;
-	community_meeting_choices: number[] | null;
-	community_workshop_choices: number[] | null;
-	information_sheet_choices: number[] | null;
-	other_community_meeting: string | null;
-	other_community_workshop: string | null;
-	other_information_sheet: string | null;
-	stay_in_touch_choices: number[] | null;
-	will_run_community_workshops: string | null;
-} | null;
-export type CommunityExternalProfileData = {
-	external_profile_id: any;
-	community_meeting_choices: number[] | null;
-	community_workshop_choices: number[] | null;
-	information_sheet_choices: number[] | null;
-	other_community_meeting: string | null;
-	other_community_workshop: string | null;
-	other_information_sheet: string | null;
-	stay_in_touch_choices: number[] | null;
-	will_run_community_workshops: string | null;
-} | null;
-export type UserPostalAddressData = {
-	postal_address_postcode: string | null;
-	postal_address_street: string | null;
-	postal_address_suburb: string | null;
-} | null;
-export type UserProfileData = {
+
+export type UserProfile = {
 	family_name: string | null;
 	fire_fighting_experience: number | null;
 	fire_trauma: boolean | null;
 	first_name: string | null;
 	mobile: string | null;
+	other_comments: string | null;
 	plan_to_leave_before_fire: number | null;
 	plan_to_leave_before_flood: number | null;
 	residency_profile: number | null;
 	rfs_survival_plan: string | null;
 	stay_in_touch_choices: number[] | null;
-	other_comments: string | null;
+	user_postal_address: UserPostalAddress | null;
+	property_profile: PropertyProfile[];
+	community_bcyca_profile: BCYCACommunityProfile | null;
+	community_tinonee_profile: TinoneeCommunityProfile | null;
+	community_mondrook_profile: MondrookCommunityProfile | null;
+	community_external_profile: ExternalCommunityProfile | null;
+};
+
+export type UserPostalAddress = {
+	postal_address_postcode: string | null;
+	postal_address_street: string | null;
+	postal_address_suburb: string | null;
+} | null;
+
+export type BCYCACommunityProfile = {
+	bcyca_profile_id: string;
+	community_meeting_choices: string[] | null;
+	community_workshop_choices: string[] | null;
+	information_sheet_choices: string[] | null;
+	other_community_meeting: string | null;
+	other_community_workshop: string | null;
+	other_information_sheet: string | null;
+	stay_in_touch_choices: string[] | null;
+	will_run_community_workshops: boolean | null;
+} | null;
+
+export type TinoneeCommunityProfile = {
+	tinonee_profile_id: string;
+	community_meeting_choices: string[] | null;
+	community_workshop_choices: string[] | null;
+	information_sheet_choices: string[] | null;
+	other_community_meeting: string | null;
+	other_community_workshop: string | null;
+	other_information_sheet: string | null;
+	stay_in_touch_choices: string[] | null;
+	will_run_community_workshops: boolean | null;
+} | null;
+
+export type MondrookCommunityProfile = {
+	mondrook_profile_id: string;
+	community_meeting_choices: string[] | null;
+	community_workshop_choices: string[] | null;
+	information_sheet_choices: string[] | null;
+	other_community_meeting: string | null;
+	other_community_workshop: string | null;
+	other_information_sheet: string | null;
+	stay_in_touch_choices: string[] | null;
+	will_run_community_workshops: boolean | null;
+} | null;
+
+export type ExternalCommunityProfile = {
+	external_profile_id: string;
+	community_meeting_choices: string[] | null;
+	community_workshop_choices: string[] | null;
+	information_sheet_choices: string[] | null;
+	other_community_meeting: string | null;
+	other_community_workshop: string | null;
+	other_information_sheet: string | null;
+	stay_in_touch_choices: string[] | null;
+	will_run_community_workshops: boolean | null;
+} | null;
+
+export type PersonalProfileFormData = Omit<UserProfile, 'property_profile'> & {
+	property_profile: PropertyProfile;
 };
 
 //---------User Profile Forms-----------------
@@ -165,7 +202,7 @@ export type ProfileAboutMeFormData = {
 };
 export type ProfileMyPlaceFormData = {
 	property_rented: boolean;
-	propertyAgentData: PropertyAgentData;
+	propertyAgentData: PropertyAgent;
 	sign_posted: boolean | null;
 	vulnerable_residents: boolean | null;
 	phone: string | null;
@@ -218,7 +255,7 @@ export type ProfileMyCommunityBCYCAEventsFormData = {
 	community_meeting_choices: number[] | null;
 	other_community_meeting: string | null;
 };
-export type ProfileMyCommunityBCYCAInformationFormData = {
+export type ProfileMyBCYCACommunityInformationFormData = {
 	information_sheet_choices: number[] | null;
 	other_information_sheet: string | null;
 };

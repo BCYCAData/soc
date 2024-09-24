@@ -21,63 +21,26 @@
 	import Step20 from '$components/form/personal-emergency-profile/Step20.svelte';
 	import Step21 from '$components/form/personal-emergency-profile/Step21.svelte';
 
-	import type {
-		PropertyAddress,
-		PropertyAgentData,
-		PropertyProfileData,
-		CommunityBCYCAProfileData,
-		CommunityTinoneeProfileData,
-		CommunityMondrookProfileData,
-		CommunityExternalProfileData,
-		UserPostalAddressData,
-		UserProfileData
-	} from '$lib/types';
+	import type { PersonalProfileFormData } from '$lib/form.types';
 
-	interface Props {
+	type Props = {
 		active_step: number;
-		propertyId: string;
-		communityName: string;
-		propertyAddress: PropertyAddress;
 		propertyWasRented: boolean;
-		propertyProfile: PropertyProfileData;
-		propertyAgent: PropertyAgentData;
-		userProfile: UserProfileData;
-		userPostalAddress: UserPostalAddressData;
-		communityBCYCAProfile: CommunityBCYCAProfileData;
-		communityTinoneeProfile: CommunityTinoneeProfileData;
-		communityMondrookProfile: CommunityMondrookProfileData;
-		communityExternalProfile: CommunityExternalProfileData;
+		userProfile: PersonalProfileFormData;
 		optionsData: any;
-	}
+	};
 
-	let {
-		active_step,
-		propertyId,
-		communityName,
-		propertyAddress,
-		propertyWasRented,
-		propertyProfile,
-		propertyAgent,
-		userProfile,
-		userPostalAddress,
-		communityBCYCAProfile,
-		communityTinoneeProfile,
-		communityMondrookProfile,
-		communityExternalProfile,
-		optionsData
-	}: Props = $props();
+	let { active_step, propertyWasRented, userProfile, optionsData }: Props = $props();
 
-	const communityProfileId = communityBCYCAProfile
-		? communityBCYCAProfile.bcyca_profile_id
-		: communityTinoneeProfile
-			? communityTinoneeProfile.tinonee_profile_id
-			: communityMondrookProfile
-				? communityMondrookProfile.mondrook_profile_id
-				: communityExternalProfile
-					? communityExternalProfile.external_profile_id
+	const communityProfileId = userProfile.community_bcyca_profile
+		? userProfile.community_bcyca_profile.bcyca_profile_id
+		: userProfile.community_tinonee_profile
+			? userProfile.community_tinonee_profile.tinonee_profile_id
+			: userProfile.community_mondrook_profile
+				? userProfile.community_mondrook_profile.mondrook_profile_id
+				: userProfile.community_external_profile
+					? userProfile.community_external_profile.external_profile_id
 					: '';
-	console.log('communityProfileId', communityProfileId);
-	console.log('optionsData', optionsData);
 	const communityBCYCAWorkshopOptionsData =
 		optionsData.communityBCYCAOptionsData?.object_names.find(
 			(item: { object_name: string }) => item.object_name === 'communityWorkshopOptions'
@@ -180,77 +143,115 @@
 		at Step 12
 	</div>
 	<form method="post" action="/personal-profile-form" id="personalProfileForm">
-		<input type="hidden" name="communityName" value={communityName} />
-		<input type="hidden" name="propertyId" value={propertyId} />
+		<input
+			type="hidden"
+			name="communityName"
+			value={userProfile.property_profile.community_areas?.[0]?.community ?? ''}
+		/>
+		<input type="hidden" name="propertyId" value={userProfile.property_profile.id} />
 		<input type="hidden" name="propertyWasRented" value={propertyWasRented} />
 		<input type="hidden" name="communityProfileId" value={communityProfileId} />
 		<div hidden={active_step != 1}>
 			<Step1 />
 		</div>
 		<div hidden={active_step != 2}>
-			<Step2 {userProfile} {propertyProfile} {propertyAddress} {propertyAgent} />
+			<Step2 {userProfile} {propertyWasRented} />
 		</div>
 		<div hidden={active_step != 3}>
-			<Step3 {userProfile} {propertyProfile} />
+			<Step3 {userProfile} />
 		</div>
 		<div hidden={active_step != 4}>
-			<Step4 {propertyProfile} />
+			<Step4 propertyProfile={userProfile.property_profile} />
 		</div>
 		<div hidden={active_step != 5}>
-			<Step5 {propertyProfile} />
+			<Step5 propertyProfile={userProfile.property_profile} />
 		</div>
 		<div hidden={active_step != 6}>
-			<Step6 {propertyProfile} />
+			<Step6 propertyProfile={userProfile.property_profile} />
 		</div>
 		<div hidden={active_step != 7}>
 			<Step7 {userProfile} />
 		</div>
-		{#if communityBCYCAProfile}
+		{#if userProfile.community_bcyca_profile}
 			<div hidden={active_step != 8}>
-				<Step8 {communityBCYCAProfile} {communityBCYCAWorkshopOptions} />
+				<Step8
+					communityBCYCAProfile={userProfile.community_bcyca_profile}
+					{communityBCYCAWorkshopOptions}
+				/>
 			</div>
 			<div hidden={active_step != 9}>
-				<Step9 {communityBCYCAProfile} {communityBCYCAInformationOptions} />
+				<Step9
+					communityBCYCAProfile={userProfile.community_bcyca_profile}
+					{communityBCYCAInformationOptions}
+				/>
 			</div>
 			<div hidden={active_step != 10}>
-				<Step10 {communityBCYCAProfile} {communityBCYCAMeetingOptions} />
+				<Step10
+					communityBCYCAProfile={userProfile.community_bcyca_profile}
+					{communityBCYCAMeetingOptions}
+				/>
 			</div>
 		{/if}
-		{#if communityTinoneeProfile}
+		{#if userProfile.community_tinonee_profile}
 			<div hidden={active_step != 8}>
-				<Step11 {communityTinoneeProfile} {communityTinoneeWorkshopOptions} />
+				<Step11
+					communityTinoneeProfile={userProfile.community_tinonee_profile}
+					{communityTinoneeWorkshopOptions}
+				/>
 			</div>
 			<div hidden={active_step != 9}>
-				<Step12 {communityTinoneeProfile} {communityTinoneeInformationOptions} />
+				<Step12
+					communityTinoneeProfile={userProfile.community_tinonee_profile}
+					{communityTinoneeInformationOptions}
+				/>
 			</div>
 			<div hidden={active_step != 10}>
-				<Step13 {communityTinoneeProfile} {communityTinoneeMeetingOptions} />
+				<Step13
+					communityTinoneeProfile={userProfile.community_tinonee_profile}
+					{communityTinoneeMeetingOptions}
+				/>
 			</div>
 		{/if}
-		{#if communityMondrookProfile}
+		{#if userProfile.community_mondrook_profile}
 			<div hidden={active_step != 8}>
-				<Step14 {communityMondrookProfile} {communityMondrookWorkshopOptions} />
+				<Step14
+					communityMondrookProfile={userProfile.community_mondrook_profile}
+					{communityMondrookWorkshopOptions}
+				/>
 			</div>
 			<div hidden={active_step != 9}>
-				<Step15 {communityMondrookProfile} {communityMondrookInformationOptions} />
+				<Step15
+					communityMondrookProfile={userProfile.community_mondrook_profile}
+					{communityMondrookInformationOptions}
+				/>
 			</div>
 			<div hidden={active_step != 10}>
-				<Step16 {communityMondrookProfile} {communityMondrookMeetingOptions} />
+				<Step16
+					communityMondrookProfile={userProfile.community_mondrook_profile}
+					{communityMondrookMeetingOptions}
+				/>
 			</div>
 		{/if}
-		{#if communityExternalProfile}
+		{#if userProfile.community_external_profile}
 			<div hidden={active_step != 8}>
-				<Step17 {communityExternalProfile} {communityExternalWorkshopOptions} />
+				<Step17
+					communityExternalProfile={userProfile.community_external_profile}
+					{communityExternalWorkshopOptions}
+				/>
 			</div>
 			<div hidden={active_step != 9}>
-				<Step18 {communityExternalProfile} {communityExternalInformationOptions} />
+				<Step18 communityExternalProfile={userProfile.community_external_profile} />
 			</div>
 			<div hidden={active_step != 10}>
-				<Step19 {communityExternalProfile} {communityExternalMeetingOptions} />
+				<Step19 communityExternalProfile={userProfile.community_external_profile} />
 			</div>
 		{/if}
 		<div hidden={active_step != 11}>
-			<Step20 {userProfile} {userPostalAddress} {userProfileStayInTouchOptions} {communityName} />
+			<Step20
+				{userProfile}
+				{userProfileStayInTouchOptions}
+				communityName={userProfile.property_profile.community_areas?.[0]?.community}
+			/>
 		</div>
 		<div hidden={active_step != 12}>
 			<Step21 />

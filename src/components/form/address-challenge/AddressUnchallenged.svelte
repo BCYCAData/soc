@@ -4,10 +4,10 @@
 
 	import Spinner from '$components/page/Spinner.svelte';
 
-	interface Props {
+	type Props = {
 		streetaddress?: string;
 		suburb?: string;
-	}
+	};
 
 	let loading = false;
 	let { streetaddress = '', suburb = '' }: Props = $props();

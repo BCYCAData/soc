@@ -1,45 +1,93 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
-
 	import '../../../../app.postcss';
 
-	interface Props {
-		projectAddressPoints: any;
+	type MarkerShape =
+		| 'text'
+		| 'circle'
+		| 'square'
+		| 'star'
+		| 'triangle'
+		| 'triangle-down'
+		| 'wye'
+		| 'diamond'
+		| 'concentric-circle'
+		| 'concentric-square'
+		| 'concentric-triangle'
+		| 'concentric-diamond';
+
+	interface MarkerOptions {
+		markerShape?: MarkerShape;
+		fillColour?: string;
+		fillOpacity?: number;
+		size?: number;
+		strokeColour?: string;
+		strokeOpacity?: number;
+		strokeWidth?: number;
 	}
 
-	let { projectAddressPoints }: Props = $props();
+	interface AddressPointsGeoJSON {
+		allAddresspoints: GeoJSON.FeatureCollection<GeoJSON.Point, AllAddressPointProperties>;
+		registeredAddresspoints: GeoJSON.FeatureCollection<
+			GeoJSON.Point,
+			RegisteredAddressPointProperties
+		>;
+		bounds: L.LatLngBoundsExpression | [[number, number], [number, number]];
+		centre: L.LatLngExpression | [number, number];
+	}
+
+	interface AllAddressPointProperties {
+		id: number;
+		addresspointoid: number;
+		enddate: string;
+	}
+
+	interface RegisteredAddressPointProperties {
+		addresspointtype: string;
+	}
+
+	let addressPointsGeoJSON: AddressPointsGeoJSON = $props();
+
+	const baseLayers = [
+		{
+			name: 'NSW Streets',
+			url: `https://maps.six.nsw.gov.au/arcgis/rest/services/public/NSW_Base_Map/MapServer/tile/{z}/{y}/{x}`,
+			attribution: `\u003ca href='https://www.spatial.nsw.gov.au' target='_blank'\u003e\u0026copy; Spatial Services NSW \u003c/a\u003e`
+		}
+	];
 
 	const mapConfig = {
-		centre: [-31.955815, 152.300884] as [number, number],
-		zoom: 11.75,
+		bounds: addressPointsGeoJSON.bounds,
+		minZoom: undefined,
+		maxZoom: undefined,
+		zoomable: true,
 		zoomSnap: 0.25,
-		zoomControl: false,
-		layersControl: false,
-		dragging: false,
-		doubleClickZoom: false,
-		scrollWheelZoom: false,
-		boxZoom: false,
-		touchZoom: false,
-		keyboard: false
+		scaleControl: { present: true, position: 'bottomleft' as L.ControlPosition },
+		attributionControl: { present: true },
+		layersControl: { present: true, position: 'topright' as L.ControlPosition },
+		legend: { present: false, position: 'bottomright' as L.ControlPosition },
+		width: '100%',
+		height: '99%',
+		baseLayers: baseLayers
 	};
 
-	const baseUrl = `https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=${env.PUBLIC_MAPTILER_KEY}`;
-	const baseAttribution = `\u003ca href="https://www.maptiler.com/copyright/" target="_blank"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href="https://www.openstreetmap.org/copyright" target="_blank"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e \u003ca href="https://www.spatial.nsw.gov.au" target="_blank"\u003e\u0026copy; Spatial Services NSW \u003c/a\u003e`;
-
-	const projectAddresspointsOptions: L.CircleMarkerOptions = {
-		color: '#a5a5a5',
-		weight: 0,
-		radius: 3,
+	const projectAddresspointsOptions: MarkerOptions = {
+		markerShape: 'circle',
+		fillColour: '#a5a5a5',
+		size: 6,
+		strokeColour: '#000',
+		strokeWidth: 0,
+		strokeOpacity: 0,
 		fillOpacity: 0.8
 	};
 
-	const registeredAddresspointsOptions: L.CircleMarkerOptions = {
-		fillColor: '#f97316',
-		radius: 4,
-		color: '#000',
-		weight: 1,
-		opacity: 1,
-		fillOpacity: 0.8
+	const registeredAddresspointsOptions: MarkerOptions = {
+		markerShape: 'circle',
+		fillColour: '#f97316',
+		size: 8,
+		strokeColour: '#000',
+		strokeWidth: 0,
+		strokeOpacity: 0,
+		fillOpacity: 1
 	};
 </script>
 
@@ -87,27 +135,28 @@
 			that have participated
 		</p>
 	</section>
-	<!-- <pre>{JSON.stringify(projectAddressPoints.allAddresspoints)}</pre> -->
-
-	{#if projectAddressPoints}
-		<div class="main-map map-container mx-auto flex w-5/6 flex-col">
+	<section class="main-map">
+		{#if addressPointsGeoJSON}
 			{#await import('$components/map/leaflet/Leafletmap.svelte') then { default: LeafletMap }}
 				<LeafletMap {...mapConfig}>
-					{#await import('$components/map/leaflet/layers/LeafletTileLayer.svelte') then { default: LeafletTileLayer }}
-						<LeafletTileLayer url={baseUrl} attribution={baseAttribution} />
-					{/await}
 					{#await import('$components/map/leaflet/layers/geojson/LeafletGeoJSONPointLayer.svelte') then { default: LeafletGeoJSONPointLayer }}
 						<LeafletGeoJSONPointLayer
-							data={projectAddressPoints.allAddresspoints}
-							name="Project Address Points"
-							pointToLayerFunctionName="createCircleMarker"
-							styleOptions={projectAddresspointsOptions}
+							geojsonData={addressPointsGeoJSON.allAddresspoints}
+							layerName="Project Address Points"
+							visible={true}
+							editable={false}
+							showInLegend={false}
+							staticLayer={true}
+							markerOptions={projectAddresspointsOptions}
 						/>
 						<LeafletGeoJSONPointLayer
-							data={projectAddressPoints.registeredAddresspoints}
-							name="Registered Address Points"
-							pointToLayerFunctionName="createCircleMarker"
-							styleOptions={registeredAddresspointsOptions}
+							geojsonData={addressPointsGeoJSON.registeredAddresspoints}
+							layerName="Registered Address Points"
+							visible={true}
+							editable={false}
+							showInLegend={false}
+							staticLayer={true}
+							markerOptions={registeredAddresspointsOptions}
 						/>
 					{/await}
 					{#await import('$components/map/leaflet/controls/LeafletScaleControl.svelte') then { default: LeafletScaleControl }}
@@ -115,12 +164,10 @@
 					{/await}
 				</LeafletMap>
 			{/await}
-		</div>
-	{:else}
-		<div class="main-map mx-auto flex h-full w-5/6 flex-col">
+		{:else}
 			<p class="mt-4 text-center text-surface-500">Bugger!</p>
-		</div>
-	{/if}
+		{/if}
+	</section>
 </article>
 
 <style>
@@ -135,6 +182,9 @@
 	}
 	.main-map {
 		grid-area: map-area;
+		min-height: 0; /* This is crucial for grid items to shrink below their content size */
+		display: flex; /* Use flexbox to ensure child elements (like the map) expand fully */
+		flex-direction: column;
 	}
 	.wrapper {
 		display: grid;
@@ -145,12 +195,15 @@
 			'list list list list list '
 			'. map-area map-area map-area .';
 		grid-template-rows: auto auto auto 1fr;
+		height: 100vh;
 	}
-	.map-container {
-		height: 100%;
-		min-height: 400px;
-	}
+
 	.text-primary {
 		color: var(--primary-color);
+	}
+
+	:global(.main-map > *) {
+		flex: 1;
+		min-height: 0; /* Allow the map to shrink if needed */
 	}
 </style>

@@ -2,24 +2,20 @@
 	import {
 		staticWaterOptions,
 		yesNoMaybeOptions,
-		fireFightingResources
+		fireFightingResourceOptions
 	} from '$lib/profileOptions';
 
 	import NumberInput from '$components/form/inputs/NumberInput.svelte';
 
-	import type { PropertyProfileData } from '$lib/types';
+	import type { PropertyProfile } from '$lib/form.types';
 
-	interface Props {
-		propertyProfile: PropertyProfileData;
-	}
+	type Props = {
+		propertyProfile: PropertyProfile;
+	};
 
 	let { propertyProfile = $bindable() }: Props = $props();
 
-	let localPropertyProfile = $state({ ...propertyProfile });
-
-	$effect(() => {
-		Object.assign(propertyProfile, localPropertyProfile);
-	});
+	console.log('propertyProfile', propertyProfile.static_water_available);
 
 	let noneChecked = $state(false);
 	let have_stortzChecked = $state(propertyProfile.have_stortz == 'Y');
@@ -47,7 +43,7 @@
 	};
 </script>
 
-<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
+<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">
 	Are there any static water supplies on the property?<span
 		class="text-scale-3 ml-2 text-surface-500"
 	>
@@ -62,16 +58,16 @@
 					class="ml-8 h-6 w-6"
 					id="static_water_available"
 					type="checkbox"
-					bind:group={localPropertyProfile.static_water_available}
+					bind:group={propertyProfile.static_water_available}
 					name="static_water_available"
-					{value}
+					value={Number(value)}
+					checked={propertyProfile?.static_water_available?.includes(Number(value)) ?? false}
 					onchange={(e) => {
 						setStaticWater(e);
 					}}
 				/>
-				<label
-					class="font-Poppins text-scale-6 ml-2 font-medium text-orange-900"
-					for="static_water_available">{lable}</label
+				<label class="text-scale-6 ml-2 font-medium text-orange-900" for="static_water_available"
+					>{lable}</label
 				>
 			</div>
 		{:else}
@@ -81,23 +77,22 @@
 					id="static_water_available"
 					type="checkbox"
 					name="static_water_available"
-					bind:group={localPropertyProfile.static_water_available}
-					{value}
+					bind:group={propertyProfile.static_water_available}
+					value={Number(value)}
 					onchange={(e) => {
 						unCheckAllStaticWater(e);
 					}}
 					checked={noneChecked}
 				/>
-				<label
-					class="font-Poppins text-scale-6 ml-2 font-medium text-orange-900"
-					for="static_water_available">{lable}</label
+				<label class="text-scale-6 ml-2 font-medium text-orange-900" for="static_water_available"
+					>{lable}</label
 				>
 			</div>
 		{/if}
 	{/each}
 </div>
 
-<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
+<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">
 	Do you have a Stortz fitting attached to a water tank?
 </h2>
 <div class="flex justify-start rounded-lg bg-secondary-200 p-2">
@@ -111,32 +106,30 @@
 				onchange={(e) => {
 					have_stortzChecked = e.currentTarget.value == 'Y';
 				}}
-				bind:group={localPropertyProfile.have_stortz}
+				bind:group={propertyProfile.have_stortz}
 				{value}
 			/>
-			<label class="font-Poppins text-scale-6 ml-2 font-medium text-orange-900" for="have_stortz"
-				>{lable}</label
-			>
+			<label class="text-scale-6 ml-2 font-medium text-orange-900" for="have_stortz">{lable}</label>
 		</div>
 	{/each}
 </div>
 {#if have_stortzChecked}
-	<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">Please include the size</h2>
+	<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">Please include the size</h2>
 	<div class="flex flex-wrap justify-between rounded-lg bg-secondary-200 p-2">
 		<div class="flex items-center">
 			<NumberInput
 				name="stortz_size"
 				lable="Size (mm)"
 				lableClass="min-w-fit mr-3 text-scale-6 font-medium text-orange-900 font-Poppins"
-				inputClass="max-w-sm border border-secondary-700 w-20 rounded sm:text-scale-5"
+				inputClass="max-w-sm border border-secondary-700 text-center w-20 rounded sm:text-scale-5"
 				divClass="flex items-center"
-				bind:inputValue={localPropertyProfile.stortz_size}
+				bind:inputValue={propertyProfile.stortz_size}
 			/>
 		</div>
 	</div>
 {/if}
 
-<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
+<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">
 	Do you have any of the following at this property?<span
 		class="text-scale-3 ml-2 text-surface-500"
 	>
@@ -144,19 +137,19 @@
 	>
 </h2>
 <div class="flex justify-start rounded-lg bg-secondary-200 p-2">
-	{#each fireFightingResources as { value, lable }}
+	{#each fireFightingResourceOptions as { value, lable }}
 		<div class="flex items-center">
 			<input
 				class="ml-8 h-6 w-6"
 				id="fire_fighting_resources"
 				type="checkbox"
 				name="fire_fighting_resources"
-				bind:group={localPropertyProfile.fire_fighting_resources}
-				{value}
+				bind:group={propertyProfile.fire_fighting_resources}
+				value={Number(value)}
+				checked={propertyProfile?.fire_fighting_resources?.includes(Number(value))}
 			/>
-			<label
-				class="font-Poppins text-scale-6 ml-2 font-medium text-orange-900"
-				for="fire_fighting_resources">{lable}</label
+			<label class="text-scale-6 ml-2 font-medium text-orange-900" for="fire_fighting_resources"
+				>{lable}</label
 			>
 		</div>
 	{/each}

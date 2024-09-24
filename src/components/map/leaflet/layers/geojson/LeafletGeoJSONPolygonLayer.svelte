@@ -1,15 +1,185 @@
 <script lang="ts">
-	import LeafletBaseGeoJSONLayer from '$components/map/leaflet/layers/geojson/LeafletBaseGeoJSONLayer.svelte';
+	import { onMount, onDestroy, getContext, mount } from 'svelte';
+	import type { Writable } from 'svelte/store';
+	import type L from 'leaflet';
+	import LeafletCustomPolygon from '$components/map/leaflet/symbology/LeafletCustomPolygon.svelte';
 
-	interface Props {
-		data: GeoJSON.FeatureCollection<GeoJSON.Polygon>;
-		name?: string;
-		children?: import('svelte').Snippet;
+	interface LegendItem {
+		symbol: string;
+		description: string;
 	}
 
-	let { data, name = 'Polygon Layer', children }: Props = $props();
-</script>
+	interface GroupedLegendItem {
+		groupName: string;
+		items: LegendItem[];
+	}
 
-<LeafletBaseGeoJSONLayer {data} {name} on:featureClick on:featureMouseover on:featureMouseout>
-	{@render children?.()}
-</LeafletBaseGeoJSONLayer>
+	interface LegendInfo {
+		items: (LegendItem | GroupedLegendItem)[];
+	}
+
+	interface LayerInfo {
+		layer: L.Layer;
+		visible: boolean;
+		editable: boolean;
+		showInLegend: boolean;
+		legendInfo: LegendInfo;
+	}
+
+	interface PolygonOptions extends L.PathOptions {
+		fillColour?: string;
+		fillOpacity?: number;
+		colour?: string;
+		weight?: number;
+	}
+
+	type PolygonStyleFunction = (feature: GeoJSON.Feature) => PolygonOptions;
+
+	interface Props {
+		geojsonData: GeoJSON.FeatureCollection;
+		layerName: string;
+		visible: boolean;
+		editable: boolean;
+		staticLayer: boolean;
+		showInLegend: boolean;
+		polygonOptions?: PolygonOptions | PolygonStyleFunction;
+		propertyForStyle?: string;
+		styleMap?: Record<string, PolygonOptions>;
+	}
+
+	let {
+		geojsonData,
+		layerName,
+		visible = true,
+		editable = false,
+		staticLayer = false,
+		showInLegend = true,
+		polygonOptions = {},
+		propertyForStyle,
+		styleMap = {}
+	}: Props = $props();
+
+	const { getLeaflet, getLeafletMap, getLeafletLayers, getLayersControl } = getContext<{
+		getLeaflet: () => typeof L;
+		getLeafletMap: () => L.Map;
+		getLeafletLayers: () => Writable<Record<string, LayerInfo>>;
+		getLayersControl: () => Writable<L.Control.Layers | null>;
+	}>('leafletContext');
+
+	let leaflet: typeof L;
+	let map: L.Map;
+	let layersStore: Writable<Record<string, LayerInfo>>;
+	let layersControl: Writable<L.Control.Layers | null>;
+
+	let geoJSONLayer: L.GeoJSON;
+
+	onMount(() => {
+		leaflet = getLeaflet();
+		map = getLeafletMap();
+		layersStore = getLeafletLayers();
+		layersControl = getLayersControl();
+		if (leaflet && map) {
+			createGeoJSONLayer();
+		}
+	});
+
+	function getPolygonOptions(feature: GeoJSON.Feature): PolygonOptions {
+		if (typeof polygonOptions === 'function') {
+			return polygonOptions(feature);
+		}
+		if (propertyForStyle && feature.properties && feature.properties[propertyForStyle]) {
+			const styleKey = feature.properties[propertyForStyle];
+			return { ...polygonOptions, ...styleMap[styleKey] };
+		}
+		return polygonOptions;
+	}
+
+	function createGeoJSONLayer() {
+		geoJSONLayer = leaflet.geoJSON(geojsonData, {
+			style: (feature) => getPolygonOptions(feature as GeoJSON.Feature<GeoJSON.Geometry, any>)
+		});
+		geoJSONLayer.addTo(map);
+
+		let legendItems: LegendItem[];
+		if (typeof polygonOptions === 'function') {
+			legendItems = geojsonData.features.map((feature) => {
+				const options = polygonOptions(feature as GeoJSON.Feature<GeoJSON.Geometry, any>);
+				return {
+					symbol: createLegendSymbol(options),
+					description:
+						feature.properties && propertyForStyle
+							? feature.properties[propertyForStyle]
+							: 'Feature'
+				};
+			});
+		} else if (propertyForStyle && Object.keys(styleMap).length > 0) {
+			legendItems = Object.entries(styleMap).map(([key, value]) => ({
+				symbol: createLegendSymbol({ ...polygonOptions, ...value }),
+				description: key
+			}));
+		} else {
+			legendItems = [
+				{
+					symbol: createLegendSymbol(polygonOptions),
+					description: layerName
+				}
+			];
+		}
+
+		const legendInfo: LegendInfo = {
+			items: legendItems
+		};
+
+		layersStore.update((layers) => ({
+			...layers,
+			[layerName]: {
+				layer: geoJSONLayer,
+				visible: visible,
+				editable: editable,
+				showInLegend: showInLegend,
+				legendInfo: legendInfo
+			}
+		}));
+		if (!staticLayer) {
+			layersControl.subscribe((control) => {
+				if (control) {
+					control.addOverlay(geoJSONLayer, layerName);
+				}
+			});
+		}
+	}
+
+	function createLegendSymbol(options: PolygonOptions): string {
+		const container = document.createElement('div');
+		mount(LeafletCustomPolygon, {
+			target: container,
+			props: options as { [key: string]: any }
+		});
+		console.log('container', container.innerHTML);
+		return container.innerHTML.trim();
+	}
+
+	$effect(() => {
+		if (geoJSONLayer && geojsonData) {
+			geoJSONLayer.clearLayers();
+			geoJSONLayer.addData(geojsonData);
+		}
+	});
+
+	onDestroy(() => {
+		if (geoJSONLayer) {
+			geoJSONLayer.remove();
+			layersStore.update((layers) => {
+				const { [layerName]: _, ...rest } = layers;
+				return rest;
+			});
+			if (!staticLayer) {
+				layersControl.subscribe((control) => {
+					if (control) {
+						control.removeLayer(geoJSONLayer);
+					}
+				});
+			}
+		}
+	});
+</script>

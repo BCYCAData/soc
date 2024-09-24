@@ -1,5 +1,20 @@
 import type L from 'leaflet';
 
+export let markerShape:
+	| 'text'
+	| 'circle'
+	| 'square'
+	| 'star'
+	| 'triangle'
+	| 'triangle-down'
+	| 'wye'
+	| 'diamond'
+	| 'star'
+	| 'concentric-circle'
+	| 'concentric-square'
+	| 'concentric-triangle'
+	| 'concentric-diamond' = 'circle';
+
 export class PointLayerFunctions {
 	private leaflet: typeof L;
 
@@ -27,7 +42,7 @@ export class PointLayerFunctions {
 		return this.leaflet.marker(latlng, {
 			icon: this.leaflet.divIcon({
 				html: options.html || feature.properties?.label,
-				className: 'text-scale-4abel',
+				className: 'text-scale-label',
 				...options
 			})
 		});

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { Step } from '$lib/types';
+	import type { Step } from '$lib/menu-items';
 
-	interface Props {
+	type Props = {
 		steps?: Step[];
 		currentActive?: number;
-	}
+	};
 
 	let { steps = [], currentActive = $bindable(1) }: Props = $props();
 

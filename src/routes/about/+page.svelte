@@ -5,18 +5,17 @@
 	import KYNGsTab from '$components/page/tabs/about/KYNGsTab.svelte';
 	import HallInfoHubTab from '$components/page/tabs/about/HallInfoHubTab.svelte';
 	import WorkshopsTab from '$components/page/tabs/about/WorkshopsTab.svelte';
+	import type { PageData } from './$types';
 
-	interface Props {
-		data: any;
-	}
+	type Props = {
+		data: PageData;
+	};
 
 	let { data }: Props = $props();
-	const { projectAddressPoints } = data;
-	const addressPoints = { projectAddressPoints };
 
 	// List of tab items with labels, values and assigned components
 	let items = [
-		{ label: 'SOC Project', value: 1, component: ProjectTab, props: addressPoints },
+		{ label: 'SOC Project', value: 1, component: ProjectTab, props: data.projectAddressPointData },
 		{ label: 'Know Your Neighbour Groups', value: 2, component: KYNGsTab },
 		{ label: 'BCYCA Hall as Info Hub', value: 3, component: HallInfoHubTab },
 		{ label: 'Workshops', value: 4, component: WorkshopsTab }

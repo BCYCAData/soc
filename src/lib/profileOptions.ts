@@ -11,16 +11,13 @@ export const yesNoOptions = [
 	{ value: true, lable: 'Yes' },
 	{ value: false, lable: 'No' }
 ];
-export const noYesOptions = [
-	{ value: false, lable: 'No' },
-	{ value: true, lable: 'Yes' }
-];
+
 export const yesNoMaybeOptions = [
 	{ value: 'Y', lable: 'Yes' },
 	{ value: 'N', lable: 'No' },
 	{ value: 'M', lable: 'Maybe' }
 ];
-export const fireFightingResources = [
+export const fireFightingResourceOptions = [
 	{ value: 1, lable: 'Fire trailer' },
 	{ value: 2, lable: 'Fire fighting pump' },
 	{ value: 3, lable: 'Fire hose' },
@@ -75,7 +72,15 @@ export type CommunityRequestOption = {
 	};
 };
 
-type TransformedData = {
+export type OptionsData = {
+	userOptionsData?: TransformedOptionsData[0];
+	communityBCYCAOptionsData?: TransformedOptionsData[0];
+	communityExternalOptionsData?: TransformedOptionsData[0];
+	communityMondrookOptionsData?: TransformedOptionsData[0];
+	communityTinoneeOptionsData?: TransformedOptionsData[0];
+};
+
+export type TransformedOptionsData = {
 	table_name: string;
 	object_names: {
 		object_name: string;
@@ -86,8 +91,8 @@ type TransformedData = {
 	}[];
 }[];
 
-export function getCommunityOptions(data: CommunityRequestOption[]): TransformedData {
-	const result: TransformedData = [];
+export function getCommunityOptions(data: CommunityRequestOption[]): TransformedOptionsData {
+	const result: TransformedOptionsData = [];
 
 	// Group by table_name
 	const groupedByTable = data.reduce(

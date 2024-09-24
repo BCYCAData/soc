@@ -4,9 +4,9 @@
 	import AuthErrorMessage from '$components/form/auth/AuthErrorMessage.svelte';
 	import type { APIData } from '$lib/types';
 
-	interface Props {
+	type Props = {
 		apiData: APIData;
-	}
+	};
 
 	let { apiData = $bindable() }: Props = $props();
 
@@ -36,7 +36,7 @@
 	</div>
 	<div class="max-w-container mx-auto flex flex-col items-center justify-center">
 		<div class="w-5/6 rounded bg-secondary-50 p-6 text-surface-950 shadow-md sm:ml-0 sm:w-full">
-			<h1 class="unstyled text-center text-2xl">
+			<h1 class="h1 text-center text-2xl">
 				Please enter your email address and a password to complete the registration process.
 			</h1>
 			<form action="/auth/signup?/signup" method="POST">

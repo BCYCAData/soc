@@ -1,60 +1,17 @@
 <script lang="ts">
-	import type { Component } from 'svelte';
-	import { onMount } from 'svelte';
-	import { ChevronDown } from 'lucide-svelte';
+	import type { ProfileMenuItem } from '$lib/types';
 
-	interface ProfileMenuItem {
-		id: string;
-		name: string;
-		link: string;
-		icon: string;
-		initialOpen?: boolean;
-		subItems?: ProfileMenuItem[];
-	}
-
-	interface Props {
+	type Props = {
 		siderbarMenuItems: ProfileMenuItem[];
-	}
+	};
 
 	let { siderbarMenuItems }: Props = $props();
+
 	let activeSubmenus: string[] = $state(
 		siderbarMenuItems.filter((item) => item.initialOpen).map((item) => item.id)
 	);
+
 	let activeSubSubmenus: { [key: string]: string[] } = $state({});
-	let iconComponents: { [key: string]: Component | null } = {};
-
-	onMount(async () => {
-		for (const item of siderbarMenuItems) {
-			await loadIcon(item.icon);
-			if (item.subItems) {
-				for (const subItem of item.subItems) {
-					await loadIcon(subItem.icon);
-					if (subItem.subItems) {
-						for (const nestedSubItem of subItem.subItems) {
-							await loadIcon(nestedSubItem.icon);
-						}
-					}
-				}
-			}
-		}
-	});
-
-	async function loadIcon(iconName: string) {
-		if (!iconComponents[iconName]) {
-			try {
-				const pascalCaseIconName = iconName
-					.split('-')
-					.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-					.join('');
-
-				const module = await import(`lucide-svelte/icons/${pascalCaseIconName}.svelte`);
-				iconComponents[iconName] = module.default;
-			} catch (error) {
-				console.error(`Failed to load icon: ${iconName}`, error);
-				iconComponents[iconName] = null;
-			}
-		}
-	}
 
 	function toggleSubmenu(id: string) {
 		if (activeSubmenus.includes(id)) {
@@ -72,11 +29,15 @@
 			activeSubSubmenus[parentId] = [id];
 		}
 	}
+
+	function generateUniqueId(parentId: string, itemId: string): string {
+		return `${parentId}-${itemId}`;
+	}
 </script>
 
 <div class="flex flex-col rounded-lg bg-orange-600">
 	{#each siderbarMenuItems as item}
-		<div>
+		<div class="text-stone-50">
 			<a
 				role="button"
 				tabindex="0"
@@ -85,17 +46,27 @@
 				onclick={() => toggleSubmenu(item.id)}
 				onkeydown={() => toggleSubmenu(item.id)}
 			>
-				{#if iconComponents[item.icon]}
-					<svelte:component this={iconComponents[item.icon]} class="text-2xl text-stone-50" />
+				{#if item.icon}
+					<span> <item.icon.icon size={20} letter={item.icon.letter} /></span>
 				{/if}
-				<span class="ml-2 text-stone-50">{item.name}</span>
+				<span class="ml-2">{item.name}</span>
 				{#if item.subItems}
-					<ChevronDown
-						class="caret ml-auto {activeSubmenus.includes(item.id) ? 'rotate' : ''}"
-						size={24}
-						color="#FAFAF9"
-						strokeWidth={2}
-					/>
+					<svg
+						class="caret {activeSubmenus.includes(item.id)
+							? 'rotate'
+							: ''} ml-auto transform transition-transform duration-300"
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="#FAFAF9"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<polyline points="6 9 12 15 18 9"></polyline>
+					</svg>
 				{/if}
 			</a>
 			{#if activeSubmenus.includes(item.id) && item.subItems}
@@ -110,22 +81,27 @@
 								onclick={() => toggleSubSubmenu(item.id, subItem.id)}
 								onkeydown={() => toggleSubSubmenu(item.id, subItem.id)}
 							>
-								{#if iconComponents[subItem.icon]}
-									<svelte:component
-										this={iconComponents[subItem.icon]}
-										class="text-2xl text-stone-50"
-									/>
+								{#if subItem.icon}
+									<span> <subItem.icon.icon size={20} letter={subItem.icon.letter} /></span>
 								{/if}
-								<span class="ml-2 text-stone-50">{subItem.name}</span>
+								<span class="ml-2">{subItem.name}</span>
 								{#if subItem.subItems}
-									<ChevronDown
-										class="caret ml-auto {activeSubSubmenus[item.id]?.includes(subItem.id)
+									<svg
+										class="caret {activeSubSubmenus[item.id]?.includes(subItem.id)
 											? 'rotate'
-											: ''}"
-										size={24}
-										color="#FAFAF9"
-										strokeWidth={2}
-									/>
+											: ''} ml-auto transform transition-transform duration-300"
+										xmlns="http://www.w3.org/2000/svg"
+										width="24"
+										height="24"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="#FAFAF9"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									>
+										<polyline points="6 9 12 15 18 9"></polyline>
+									</svg>
 								{/if}
 							</a>
 							{#if activeSubSubmenus[item.id]?.includes(subItem.id) && subItem.subItems}
@@ -137,16 +113,21 @@
 												tabindex="0"
 												href={nestedSubItem.link}
 												class="menu-item flex cursor-pointer items-center rounded-full p-2"
-												onclick={() => toggleSubSubmenu(subItem.id, nestedSubItem.id)}
-												onkeydown={() => toggleSubSubmenu(subItem.id, nestedSubItem.id)}
+												onclick={() =>
+													toggleSubSubmenu(generateUniqueId(item.id, subItem.id), nestedSubItem.id)}
+												onkeydown={() =>
+													toggleSubSubmenu(generateUniqueId(item.id, subItem.id), nestedSubItem.id)}
 											>
-												{#if iconComponents[nestedSubItem.icon]}
-													<svelte:component
-														this={iconComponents[nestedSubItem.icon]}
-														class="text-2xl text-stone-50"
-													/>
+												{#if nestedSubItem.icon}
+													<span>
+														<nestedSubItem.icon.icon
+															class="ml-2"
+															size={20}
+															letter={nestedSubItem.icon.letter}
+														/></span
+													>
 												{/if}
-												<span class="ml-2 text-stone-50">{nestedSubItem.name}</span>
+												<span class="ml-2">{nestedSubItem.name}</span>
 											</a>
 										</div>
 									{/each}

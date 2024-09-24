@@ -1,48 +1,60 @@
 <script lang="ts">
 	import { setUpperCase, setTitleCase } from '$lib/svelte-actions';
-	import { noYesOptions, yesNoOptions, accessOptions } from '$lib/profileOptions';
+	import { yesNoOptions, accessOptions } from '$lib/profileOptions';
 	import { formatMobile, formatPhone } from '$lib/utility';
 
-	import type {
-		PropertyAddress,
-		PropertyAgentData,
-		UserProfileData,
-		PropertyProfileData
-	} from '$lib/types';
+	import type { PersonalProfileFormData } from '$lib/form.types';
 
-	interface Props {
-		propertyAddress: PropertyAddress;
-		propertyAgent: PropertyAgentData;
-		userProfile: UserProfileData;
-		propertyProfile: PropertyProfileData;
+	type Props = {
+		propertyWasRented: boolean;
+		userProfile: PersonalProfileFormData;
+	};
+
+	let { propertyWasRented, userProfile = $bindable() }: Props = $props();
+
+	let otherAccessChecked = $state(userProfile.property_profile.truck_access === 4 ? true : false);
+	let rentingChecked = $state(userProfile.property_profile.property_rented === true);
+	let agentName = $state('');
+	let agentMobile = $state('');
+	let agentPhone = $state('');
+
+	function initializePropertyAgent() {
+		if (userProfile.property_profile.property_agent === null) {
+			userProfile.property_profile.property_agent = {
+				agent_name: '',
+				agent_mobile: '',
+				agent_phone: ''
+			};
+		}
 	}
-
-	let {
-		propertyAddress = $bindable(),
-		propertyAgent = $bindable(),
-		userProfile = $bindable(),
-		propertyProfile = $bindable()
-	}: Props = $props();
-
-	let localPropertyAddress = $state({ ...propertyAddress });
-	let localPropertyAgent = $state({ ...propertyAgent });
-	let localUserProfile = $state({ ...userProfile });
-	let localPropertyProfile = $state({ ...propertyProfile });
-
+	// Watch for changes in rentingChecked
 	$effect(() => {
-		Object.assign(propertyAddress, localPropertyAddress);
-		Object.assign(propertyAgent, localPropertyAgent);
-		Object.assign(userProfile, localUserProfile);
-		Object.assign(propertyProfile, localPropertyProfile);
+		if (rentingChecked) {
+			initializePropertyAgent();
+			agentName = userProfile.property_profile.property_agent?.agent_name ?? '';
+			agentMobile = userProfile.property_profile.property_agent?.agent_mobile ?? '';
+			agentPhone = userProfile.property_profile.property_agent?.agent_phone ?? '';
+		} else {
+			userProfile.property_profile.property_agent = null;
+			agentName = '';
+			agentMobile = '';
+			agentPhone = '';
+		}
 	});
 
-	const propertyWasRented = $state(propertyProfile.property_rented || false);
-	let otherAccessChecked = $state(propertyProfile.truck_access === 4 ? true : false);
-	let rentingChecked = $state(propertyProfile.property_rented === true);
+	// Watch for changes in rentingChecked
+	$effect(() => {
+		if (rentingChecked) {
+			console.log('$effect works');
+			initializePropertyAgent();
+		} else {
+			userProfile.property_profile.property_agent = null;
+		}
+	});
 </script>
 
 <div class="mx-auto py-2 lg:py-2">
-	<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">What is your name?</h2>
+	<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">What is your name?</h2>
 	<div class="grid gap-2 rounded-lg bg-secondary-200 p-2 sm:grid-cols-2 sm:gap-2">
 		<div class="w-full">
 			<input
@@ -54,7 +66,7 @@
 				style="text-transform:capitalize"
 				placeholder="First Name "
 				use:setTitleCase
-				bind:value={localUserProfile.first_name}
+				bind:value={userProfile.first_name}
 			/>
 		</div>
 		<div class="w-full">
@@ -67,19 +79,16 @@
 				style="text-transform:capitalize"
 				placeholder="Family Name "
 				use:setTitleCase
-				bind:value={localUserProfile.family_name}
+				bind:value={userProfile.family_name}
 			/>
 		</div>
 	</div>
-	<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
-		Your property address is:
-	</h2>
+	<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">Your property address is:</h2>
 	<div class="rounded-lg bg-secondary-200 p-2">
 		<div class="grid gap-0 sm:grid-cols-12">
 			<div class="flex items-center">
-				<label
-					class="unstyled font-Poppins text-scale-5 px-3 text-primary-700"
-					for="property_address_street">STREET</label
+				<label class="px-3 text-lg font-semibold text-primary-700" for="property_address_street"
+					>STREET</label
 				>
 			</div>
 			<div class="col-span-11 flex items-center">
@@ -92,7 +101,7 @@
 					placeholder="STREET ADDRESS"
 					use:setUpperCase
 					style="text-transform:uppercase"
-					value={propertyAddress.property_address_street}
+					value={userProfile.property_profile.property_address_street}
 					disabled
 				/>
 			</div>
@@ -102,7 +111,7 @@
 			<div class="grid gap-0 sm:grid-cols-12">
 				<div class="flex items-center">
 					<label
-						class="unstyled font-Poppins text-scale-5 pl-2 text-primary-700"
+						class="px-3 pl-2 text-lg font-semibold text-primary-700"
 						for="property_address_suburb">SUBURB</label
 					>
 				</div>
@@ -117,12 +126,12 @@
 						use:setUpperCase
 						style="text-transform:uppercase"
 						disabled
-						bind:value={localPropertyAddress.property_address_suburb}
+						bind:value={userProfile.property_profile.property_address_suburb}
 					/>
 				</div>
 				<div class="col-span-2 flex items-center">
 					<label
-						class="unstyled font-Poppins text-scale-5 text-primary-700 sm:pl-16"
+						class="px-3 text-lg font-semibold text-primary-700 sm:pl-16"
 						for="property_address_postcode">POSTCODE</label
 					>
 				</div>
@@ -136,7 +145,7 @@
 						autocomplete="postal-code"
 						style="text-transform:uppercase"
 						disabled
-						bind:value={localPropertyAddress.property_address_postcode}
+						bind:value={userProfile.property_profile.property_address_postcode}
 					/>
 				</div>
 			</div>
@@ -144,16 +153,14 @@
 	</div>
 	<input type="text" name="property_was_rented" value={propertyWasRented} hidden />
 	<div class="mb-1 flex items-center">
-		<h2 class="unstyled text-scale-6 font-semibold text-surface-950">
-			Are you renting this property?
-		</h2>
+		<h2 class="h2 text-lg font-semibold text-surface-950">Are you renting this property?</h2>
 		<p class="pl-12 pt-1" hidden={!rentingChecked}>
 			Please enter your Agent's Name and at least one contact number if you can.
 		</p>
 	</div>
 	<div class="flex h-[62px] w-full flex-row rounded-lg bg-secondary-200 p-2">
 		<div class="w-1/8 mr-4 flex items-center">
-			{#each noYesOptions as { value, lable }}
+			{#each yesNoOptions as { value, lable }}
 				{#if lable === 'Yes'}
 					<div class="flex items-center">
 						<input
@@ -164,12 +171,11 @@
 							onchange={() => {
 								rentingChecked = true;
 							}}
-							bind:group={localPropertyProfile.property_rented}
+							bind:group={userProfile.property_profile.property_rented}
 							{value}
 						/>
-						<label
-							class="font-Poppins text-scale-6 ml-2 font-medium text-orange-700"
-							for="property_rented">{lable}</label
+						<label class="text-scale-6 ml-2 font-medium text-orange-700" for="property_rented"
+							>{lable}</label
 						>
 					</div>
 				{:else}
@@ -182,12 +188,11 @@
 							onchange={() => {
 								rentingChecked = false;
 							}}
-							bind:group={localPropertyProfile.property_rented}
+							bind:group={userProfile.property_profile.property_rented}
 							{value}
 						/>
-						<label
-							class="font-Poppins text-scale-6 ml-2 font-medium text-orange-700"
-							for="property_rented">{lable}</label
+						<label class="text-scale-6 ml-2 font-medium text-orange-700" for="property_rented"
+							>{lable}</label
 						>
 					</div>
 				{/if}
@@ -195,7 +200,7 @@
 		</div>
 		<div class="sm:text-scale-5 flex flex-1 items-center justify-around">
 			<label
-				class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
+				class="flex-initial px-3 text-lg font-semibold text-primary-700"
 				for="agent_name"
 				hidden={!rentingChecked}>Agent</label
 			>
@@ -206,10 +211,10 @@
 				name="agent_name"
 				autocomplete="off"
 				hidden={!rentingChecked}
-				bind:value={localPropertyAgent.agent_name}
+				bind:value={agentName}
 			/>
 			<label
-				class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
+				class="flex-initial px-3 text-lg font-semibold text-primary-700"
 				for="agent_mobile"
 				hidden={!rentingChecked}>Mobile</label
 			>
@@ -222,20 +227,20 @@
 				placeholder="Mobile 0XXX XXX XXX"
 				onkeydown={(e) => {
 					if (['Backspace', 'Delete'].includes(e.key)) {
-						propertyAgent.agent_mobile = e.currentTarget.value;
+						agentMobile = e.currentTarget.value;
 					} else {
 						e.preventDefault();
-						propertyAgent.agent_mobile = e.currentTarget.value;
+						agentMobile = e.currentTarget.value;
 						if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
-							propertyAgent.agent_mobile = formatMobile(propertyAgent.agent_mobile, e.key);
+							agentMobile = formatMobile(agentMobile, e.key);
 						}
 					}
 				}}
 				hidden={!rentingChecked}
-				bind:value={localPropertyAgent.agent_mobile}
+				bind:value={agentMobile}
 			/>
 			<label
-				class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
+				class="flex-initial px-3 text-lg font-semibold text-primary-700"
 				for="agent_phone"
 				hidden={!rentingChecked}>Landline</label
 			>
@@ -247,21 +252,21 @@
 				placeholder="Landline XXXX XXXX"
 				onkeydown={(e) => {
 					if (['Backspace', 'Delete'].includes(e.key)) {
-						propertyAgent.agent_phone = e.currentTarget.value;
+						agentPhone = e.currentTarget.value;
 					} else {
 						e.preventDefault();
-						propertyAgent.agent_phone = e.currentTarget.value;
+						agentPhone = e.currentTarget.value;
 						if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
-							propertyAgent.agent_phone = formatPhone(propertyAgent.agent_phone, e.key);
+							agentPhone = formatPhone(agentPhone, e.key);
 						}
 					}
 				}}
 				hidden={!rentingChecked}
-				bind:value={localPropertyAgent.agent_phone}
+				bind:value={agentPhone}
 			/>
 		</div>
 	</div>
-	<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
+	<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">
 		Is your property well sign-posted and numbered clearly from the road?
 	</h2>
 	<div class="flex flex-wrap rounded-lg bg-secondary-200 p-2">
@@ -271,21 +276,19 @@
 					name="sign_posted"
 					class="ml-8 h-6 w-6"
 					type="radio"
-					bind:group={localPropertyProfile.sign_posted}
+					bind:group={userProfile.property_profile.sign_posted}
 					{value}
 				/>
-				<label
-					class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
-					for="sign_posted">{lable}</label
+				<label class="flex-initial px-3 text-lg font-semibold text-primary-700" for="sign_posted"
+					>{lable}</label
 				>
 			</div>
 		{/each}
 	</div>
-	<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
+	<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">
 		Is there easy truck access to the buildings, boundaries and paddocks?
 	</h2>
 	<div class="flex flex-wrap rounded-lg bg-secondary-200 p-2">
-		<!-- <ul class="list-none w-full pl-0 m-0"> -->
 		{#each accessOptions as { value, lable }}
 			{#if lable === 'Other'}
 				<div class="flex-center flex w-full rounded-lg bg-secondary-200 pt-1">
@@ -296,12 +299,11 @@
 						}}
 						name="truck_access"
 						type="radio"
-						bind:group={localPropertyProfile.truck_access}
+						bind:group={userProfile.property_profile.truck_access}
 						{value}
 					/>
-					<label
-						class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
-						for="truck_access">{lable}</label
+					<label class="flex-initial px-3 text-lg font-semibold text-primary-700" for="truck_access"
+						>{lable}</label
 					>
 					<input
 						type="text"
@@ -309,7 +311,7 @@
 						id="truck_access_other_information"
 						name="truck_access_other_information"
 						hidden={!otherAccessChecked}
-						bind:value={localPropertyProfile.truck_access_other_information}
+						bind:value={userProfile.property_profile.truck_access_other_information}
 					/>
 				</div>
 			{:else}
@@ -323,26 +325,21 @@
 						autocomplete="off"
 						placeholder="Other Access Information..."
 						type="radio"
-						bind:group={localPropertyProfile.truck_access}
+						bind:group={userProfile.property_profile.truck_access}
 						{value}
 					/>
-					<label
-						class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
-						for="truck_access">{lable}</label
+					<label class="flex-initial px-3 text-lg font-semibold text-primary-700" for="truck_access"
+						>{lable}</label
 					>
 				</div>
 			{/if}
 		{/each}
-		<!-- </ul> -->
 	</div>
-	<h2 class="unstyled text-scale-6 mb-1 font-semibold text-surface-950">
-		What is your phone number?
-	</h2>
+	<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">What is your phone number?</h2>
 	<div class="rounded-lg bg-secondary-200 p-2">
 		<div class="sm:text-scale-5 flex flex-row">
-			<label
-				class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
-				for="mobile">Mobile</label
+			<label class="flex-initial px-3 text-lg font-semibold text-primary-700" for="mobile"
+				>Mobile</label
 			>
 			<input
 				type="tel"
@@ -361,12 +358,11 @@
 						}
 					}
 				}}
-				bind:value={localUserProfile.mobile}
+				bind:value={userProfile.mobile}
 				autocomplete="off"
 			/>
-			<label
-				class="unstyled font-Poppins text-scale-5 flex-initial px-3 text-primary-700"
-				for="phone">Landline</label
+			<label class="flex-initial px-3 text-lg font-semibold text-primary-700" for="phone"
+				>Landline</label
 			>
 			<input
 				type="tel"
@@ -376,16 +372,19 @@
 				placeholder="Landline XXXX XXXX"
 				onkeydown={(e) => {
 					if (['Backspace', 'Delete'].includes(e.key)) {
-						propertyProfile.phone = e.currentTarget.value;
+						userProfile.property_profile.phone = e.currentTarget.value;
 					} else {
 						e.preventDefault();
-						propertyProfile.phone = e.currentTarget.value;
+						userProfile.property_profile.phone = e.currentTarget.value;
 						if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
-							propertyProfile.phone = formatPhone(propertyProfile.phone, e.key);
+							userProfile.property_profile.phone = formatPhone(
+								userProfile.property_profile.phone,
+								e.key
+							);
 						}
 					}
 				}}
-				bind:value={localPropertyProfile.phone}
+				bind:value={userProfile.property_profile.phone}
 				autocomplete="tel-local"
 			/>
 		</div>
