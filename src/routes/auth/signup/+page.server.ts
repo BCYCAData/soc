@@ -53,6 +53,7 @@ export const actions: Actions = {
 				};
 			}
 			let emptyValidationError = {
+				name: 'address_validation',
 				message: `Could not validate address`,
 				details: 'No error from PostgRest',
 				hint: 'na',

@@ -61,7 +61,7 @@
 		zoomSnap = 0.25,
 		attributionControl = { present: true },
 		layersControl = { present: true, position: 'topright' },
-		editControl = { present: false },
+		editControl = { present: true },
 		width = '100%',
 		height = '98%',
 		baseLayers,

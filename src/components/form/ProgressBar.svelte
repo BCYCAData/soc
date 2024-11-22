@@ -1,5 +1,10 @@
 <script lang="ts">
 	import type { Step } from '$lib/menu-items';
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher<{
+		stepClick: MouseEvent | KeyboardEvent | CustomEvent<any>;
+	}>();
 
 	type Props = {
 		steps?: Step[];
@@ -7,58 +12,48 @@
 	};
 
 	let { steps = [], currentActive = $bindable(1) }: Props = $props();
+	let progress: HTMLDivElement;
 
-	let circles:
-		| NodeListOf<Element>
-		| { classList: { add: (arg0: string) => void; remove: (arg0: string) => void } }[];
-	let progress: HTMLDivElement | undefined = $state();
-
-	export const handleProgress = (stepIncrement: number) => {
-		circles = document.querySelectorAll('.circle');
-		if (stepIncrement == 1) {
-			currentActive++;
-
-			if (currentActive > circles.length) {
-				currentActive = circles.length;
+	const updateProgress = () => {
+		const circles = document.querySelectorAll('.circle');
+		circles.forEach((circle, idx) => {
+			if (idx < currentActive) {
+				circle.classList.add('active');
+			} else {
+				circle.classList.remove('active');
 			}
-		} else {
-			currentActive--;
-
-			if (currentActive < 1) {
-				currentActive = 1;
-			}
-		}
-		update();
-	};
-
-	function update() {
-		circles.forEach(
-			(
-				circle: { classList: { add: (arg0: string) => void; remove: (arg0: string) => void } },
-				idx: number
-			) => {
-				if (idx < currentActive) {
-					circle.classList.add('active');
-				} else {
-					circle.classList.remove('active');
-				}
-			}
-		);
+		});
 
 		const actives = document.querySelectorAll('.active');
-
 		if (progress) {
 			progress.style.width = ((actives.length - 1) / (circles.length - 1)) * 100 + '%';
 		}
-	}
+	};
+
+	export const handleProgress = (stepIncrement: number) => {
+		const circles = document.querySelectorAll('.circle');
+
+		if (stepIncrement === 1) {
+			currentActive = Math.min(currentActive + 1, circles.length);
+		} else {
+			currentActive = Math.max(currentActive - 1, 1);
+		}
+
+		updateProgress();
+	};
 
 	export const skipTo = (e: MouseEvent | KeyboardEvent | CustomEvent<any>) => {
-		circles = document.querySelectorAll('.circle');
-		currentActive = Number(
-			(e.currentTarget as EventTarget & HTMLDivElement)?.attributes.getNamedItem('data-title')
-				?.value
-		);
-		update();
+		const target = e.currentTarget as HTMLDivElement;
+		const value = target?.dataset.title;
+		if (value) {
+			currentActive = Number(value);
+			updateProgress();
+		}
+	};
+
+	const handleClick = (e: MouseEvent | KeyboardEvent | CustomEvent<any>) => {
+		dispatch('stepClick', e);
+		skipTo(e);
 	};
 </script>
 
@@ -66,14 +61,10 @@
 	<div class="progress" bind:this={progress}></div>
 	{#each steps as step, i}
 		<div
-			class="circle {i == 0 ? 'active' : ''}"
+			class="circle {i === 0 ? 'active' : ''}"
 			data-title={step.text}
-			onclick={(e) => {
-				skipTo(e);
-			}}
-			onkeypress={(e) => {
-				skipTo(e);
-			}}
+			onclick={handleClick}
+			onkeypress={handleClick}
 			role="button"
 			tabindex="0"
 		></div>

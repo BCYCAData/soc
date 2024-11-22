@@ -4,7 +4,7 @@ import { getMyCommunityMondrookWorkshopsFormData } from '$lib/server/form.utilit
 export const actions: Actions = {
 	default: async ({ request, locals: { supabase, user } }) => {
 		if (!user) {
-			redirect(307, '/auth/signin');
+			redirect(401, '/auth/signin');
 		}
 		const formData = await request.formData();
 		const myMondrookCommunityWorkshopsFormData = getMyCommunityMondrookWorkshopsFormData(formData);

@@ -15,10 +15,11 @@
 
 	let { propertyProfile = $bindable() }: Props = $props();
 
-	console.log('propertyProfile', propertyProfile.static_water_available);
+	propertyProfile.static_water_available = propertyProfile.static_water_available ?? [];
+	propertyProfile.fire_fighting_resources = propertyProfile.fire_fighting_resources ?? [];
 
 	let noneChecked = $state(false);
-	let have_stortzChecked = $state(propertyProfile.have_stortz == 'Y');
+	let have_stortzChecked = $state(propertyProfile.have_stortz === 'Y');
 
 	let selectedStaticSources = new Set<EventTarget & HTMLInputElement>();
 
@@ -29,8 +30,10 @@
 			}
 			selectedStaticSources.clear();
 			noneChecked = true;
+			propertyProfile.static_water_available = []; // Clear the array when "None" is selected
 		}
 	};
+
 	const setStaticWater = (e: Event & { currentTarget: EventTarget & HTMLInputElement }) => {
 		if (e.currentTarget.checked) {
 			selectedStaticSources.add(e.currentTarget);
@@ -56,36 +59,34 @@
 			<div class="flex items-center">
 				<input
 					class="ml-8 h-6 w-6"
-					id="static_water_available"
+					id="static_water_available_{value}"
 					type="checkbox"
 					bind:group={propertyProfile.static_water_available}
 					name="static_water_available"
 					value={Number(value)}
-					checked={propertyProfile?.static_water_available?.includes(Number(value)) ?? false}
-					onchange={(e) => {
-						setStaticWater(e);
-					}}
+					checked={propertyProfile.static_water_available?.includes(Number(value))}
+					onchange={setStaticWater}
 				/>
-				<label class="text-scale-6 ml-2 font-medium text-orange-900" for="static_water_available"
-					>{lable}</label
+				<label
+					class="text-scale-6 ml-2 font-medium text-orange-900"
+					for="static_water_available_{value}">{lable}</label
 				>
 			</div>
 		{:else}
 			<div class="flex items-center">
 				<input
 					class="ml-8 h-6 w-6"
-					id="static_water_available"
+					id="static_water_available_{value}"
 					type="checkbox"
 					name="static_water_available"
 					bind:group={propertyProfile.static_water_available}
 					value={Number(value)}
-					onchange={(e) => {
-						unCheckAllStaticWater(e);
-					}}
+					onchange={unCheckAllStaticWater}
 					checked={noneChecked}
 				/>
-				<label class="text-scale-6 ml-2 font-medium text-orange-900" for="static_water_available"
-					>{lable}</label
+				<label
+					class="text-scale-6 ml-2 font-medium text-orange-900"
+					for="static_water_available_{value}">{lable}</label
 				>
 			</div>
 		{/if}
@@ -100,19 +101,22 @@
 		<div class="flex items-center">
 			<input
 				class="ml-8 h-6 w-6"
-				id="have_stortz"
+				id="have_stortz_{value}"
 				type="radio"
 				name="have_stortz"
 				onchange={(e) => {
-					have_stortzChecked = e.currentTarget.value == 'Y';
+					have_stortzChecked = e.currentTarget.value === 'Y';
 				}}
 				bind:group={propertyProfile.have_stortz}
 				{value}
 			/>
-			<label class="text-scale-6 ml-2 font-medium text-orange-900" for="have_stortz">{lable}</label>
+			<label class="text-scale-6 ml-2 font-medium text-orange-900" for="have_stortz_{value}"
+				>{lable}</label
+			>
 		</div>
 	{/each}
 </div>
+
 {#if have_stortzChecked}
 	<h2 class="h2 mb-1 text-lg font-semibold text-surface-950">Please include the size</h2>
 	<div class="flex flex-wrap justify-between rounded-lg bg-secondary-200 p-2">
@@ -141,15 +145,16 @@
 		<div class="flex items-center">
 			<input
 				class="ml-8 h-6 w-6"
-				id="fire_fighting_resources"
+				id="fire_fighting_resources_{value}"
 				type="checkbox"
 				name="fire_fighting_resources"
 				bind:group={propertyProfile.fire_fighting_resources}
 				value={Number(value)}
-				checked={propertyProfile?.fire_fighting_resources?.includes(Number(value))}
+				checked={propertyProfile.fire_fighting_resources?.includes(Number(value)) ?? false}
 			/>
-			<label class="text-scale-6 ml-2 font-medium text-orange-900" for="fire_fighting_resources"
-				>{lable}</label
+			<label
+				class="text-scale-6 ml-2 font-medium text-orange-900"
+				for="fire_fighting_resources_{value}">{lable}</label
 			>
 		</div>
 	{/each}

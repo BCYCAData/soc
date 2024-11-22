@@ -5,10 +5,10 @@
 
 	type Props = {
 		pathLables: Record<string, PathConfig>;
-		properties: PropertyProfile[];
+		properties?: PropertyProfile[];
 	};
 
-	let { pathLables, properties }: Props = $props();
+	let { pathLables, properties = [] }: Props = $props();
 
 	let crumbs: Crumb[] = $state([]);
 
@@ -54,7 +54,6 @@
 	* {
 		margin: 0;
 		padding: 0;
-		/* font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; */
 		font-size: 16px;
 	}
 	#breadcrumb {

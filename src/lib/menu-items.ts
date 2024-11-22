@@ -25,7 +25,8 @@ import {
 	Hammer,
 	Contact,
 	BookUp,
-	Cog
+	Cog,
+	Database
 } from 'lucide-svelte';
 
 import TextIcon from '$components/navigation/TextIcon.svelte';
@@ -107,6 +108,9 @@ export const adminSidebarPathLables: Record<string, PathConfig> = {
 	site: { label: 'Site Administration', icon: SquareMenu },
 	messages: { label: 'Site Messages', icon: MessagesSquare },
 	roles: { label: 'Role Management', icon: Shield },
+	assignments: { label: 'Role Assignments', icon: UserCog },
+	permissions: { label: 'Permission Management', icon: KeyRound },
+	data: { label: 'Data Management', icon: Database },
 	users: { label: 'User Administration', icon: Users },
 	new: { label: 'New Users', icon: ChartBar },
 	kits: { label: 'Kits Delivered', icon: Hammer },
@@ -143,7 +147,30 @@ export const adminSidebarMenuItems: AdminMenuItem[] = [
 				name: 'Role Management',
 				link: '/admin/site/roles',
 				icon: { icon: Shield },
-				permission: 'admin.site.roles'
+				permission: 'admin.site.roles',
+				subItems: [
+					{
+						id: 'site-roles-assignments',
+						name: 'Role Assignments',
+						link: '/admin/site/roles/assignments',
+						icon: { icon: UserCog },
+						permission: 'admin.site.roles'
+					},
+					{
+						id: 'site-roles-permissions',
+						name: 'Permission Management',
+						link: '/admin/site/roles/permissions',
+						icon: { icon: KeyRound },
+						permission: 'admin.site.roles'
+					}
+				]
+			},
+			{
+				id: 'data-management',
+				name: 'Spatial Data Management',
+				link: '/admin/site/data',
+				icon: { icon: Database },
+				permission: 'admin.site.data'
 			}
 		]
 	},

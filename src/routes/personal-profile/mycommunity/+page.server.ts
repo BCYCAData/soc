@@ -4,7 +4,7 @@ import { getMyCommunityFormData } from '$lib/server/form.utilities';
 export const actions: Actions = {
 	default: async ({ request, locals: { supabase, user } }) => {
 		if (!user) {
-			redirect(307, '/auth/signin');
+			redirect(401, '/auth/signin');
 		}
 		const formData = await request.formData();
 		const hadUserPostalAddress = formData.get('had_user_postal_address') as string;

@@ -1,10 +1,3 @@
-import type { JwtPayload } from 'jwt-decode';
-
-export type CustomJwtPayload = JwtPayload & {
-	user_role: string;
-	coordinates_kyng: string[];
-};
-
 export type APIData = {
 	status: number;
 	searchaddressstreet: string;
@@ -16,6 +9,33 @@ export type APIData = {
 	community: string;
 	kyng: string;
 };
+
+export type ComparisonOption = {
+	value: string;
+	lable: string;
+};
+
+export interface TabulatorProps {
+	columns: any[];
+	data: any[];
+	layout: 'fitDataFill' | 'fitData' | 'fitColumns' | 'fitDataStretch' | 'fitDataTable' | undefined;
+	responsiveLayout?: boolean | 'collapse' | 'hide';
+	pagination?: boolean;
+	paginationSize?: number;
+	paginationSizeSelector?: any[];
+	movableColumns?: boolean;
+	paginationCounter?:
+		| 'rows'
+		| 'pages'
+		| ((
+				pageSize: number,
+				currentRow: number,
+				currentPage: number,
+				totalRows: number,
+				totalPages: number
+		  ) => string | HTMLElement)
+		| undefined;
+}
 
 export type MenuIcon = {
 	icon?: typeof User | typeof TextIcon;
@@ -321,6 +341,27 @@ export type ProfileMyCommunityExternalWorkshopsFormData = {
 	other_community_workshop: string | null;
 	will_run_community_workshops: string | null;
 };
+
+interface AttributeField {
+	type: 'text' | 'number' | 'select' | 'date' | 'boolean';
+	label: string;
+	required: boolean;
+	options?: string[]; // For select fields
+	default?: any;
+	validation?: {
+		min?: number;
+		max?: number;
+		pattern?: string;
+	};
+}
+
+interface Template {
+	id: string;
+	name: string;
+	description: string;
+	geometry_type: 'point' | 'line' | 'area';
+	properties: Record<string, AttributeField>;
+}
 
 //---------Functions-----------------
 export type AppMessageFunctionData =

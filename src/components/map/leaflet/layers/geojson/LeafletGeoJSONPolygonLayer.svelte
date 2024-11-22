@@ -80,6 +80,7 @@
 		layersControl = getLayersControl();
 		if (leaflet && map) {
 			createGeoJSONLayer();
+			setupGeomanControls();
 		}
 	});
 
@@ -147,6 +148,9 @@
 				}
 			});
 		}
+		if (editable) {
+			enableEditing();
+		}
 	}
 
 	function createLegendSymbol(options: PolygonOptions): string {
@@ -158,6 +162,54 @@
 		console.log('container', container.innerHTML);
 		return container.innerHTML.trim();
 	}
+
+	function enableEditing() {
+		geoJSONLayer.pm.enable({
+			allowSelfIntersection: false
+		});
+	}
+
+	function disableEditing() {
+		geoJSONLayer.pm.disable();
+	}
+
+	function setupGeomanControls() {
+		const actions = ['add', 'edit', 'delete'] as const;
+		actions.forEach((action) => {
+			map.pm.Toolbar.createCustomControl({
+				name: `${layerName}-${action}`,
+				block: 'custom',
+				title: `${action.charAt(0).toUpperCase() + action.slice(1)} ${layerName}`,
+				onClick: () => handleGeomanAction(action),
+				toggle: true,
+				className: `custom-geoman-${action}-icon`
+			});
+		});
+	}
+
+	function handleGeomanAction(action: 'add' | 'edit' | 'delete') {
+		switch (action) {
+			case 'add':
+				geoJSONLayer.pm.enable();
+				break;
+			case 'edit':
+				enableEditing();
+				break;
+			case 'delete':
+				geoJSONLayer.pm.enable();
+				break;
+		}
+	}
+
+	$effect(() => {
+		if (geoJSONLayer) {
+			if (editable) {
+				enableEditing();
+			} else {
+				disableEditing();
+			}
+		}
+	});
 
 	$effect(() => {
 		if (geoJSONLayer && geojsonData) {
@@ -180,6 +232,7 @@
 					}
 				});
 			}
+			disableEditing();
 		}
 	});
 </script>

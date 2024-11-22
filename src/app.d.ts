@@ -11,12 +11,12 @@ declare global {
 			getSessionAndUser: () => Promise<{
 				session: Session | null;
 				user: User | null;
-				permissions: string[] | null;
+				user_role: string | null;
 				coordinatesKYNG: string[] | null;
 			}>;
 			session: Session | null;
 			user: User | null;
-			permissions: string[] | null;
+			user_role: string | null;
 			coordinatesKYNG: string[] | null;
 		}
 		interface PageData {

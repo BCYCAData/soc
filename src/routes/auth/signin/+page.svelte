@@ -56,7 +56,7 @@
 			</button>
 		</form>
 	</div>
-	<div class="mt-6 text-surface-950">
+	<div class="mt-6 flex items-center justify-center gap-2 text-surface-950">
 		Not registered?
 		<a
 			href="/auth/signup"

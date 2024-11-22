@@ -6,22 +6,24 @@
 	import Navbar from '$components/page/navigation/Navbar.svelte';
 
 	import '../app.postcss';
-	// import '../app.css';
+
 	import type { LayoutData } from './$types';
 
-	export let data: LayoutData;
-	export let children;
-	$: ({ session, supabase } = data);
+	interface Props {
+		data: LayoutData;
+		children: any;
+	}
+
+	let { data, children }: Props = $props();
+	let { session, supabase } = data;
 
 	let isDarkMode = false;
 
 	onMount(() => {
-		// Check for user's preferred color scheme
 		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 			isDarkMode = true;
 			document.documentElement.classList.add('dark');
 		}
-		// Listen for changes in color scheme preference
 		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
 			isDarkMode = e.matches;
 			if (isDarkMode) {

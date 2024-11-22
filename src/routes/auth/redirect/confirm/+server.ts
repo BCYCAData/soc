@@ -9,6 +9,8 @@ export const GET: RequestHandler = async ({ url, locals: { supabase } }) => {
 	const type = url.searchParams.get('type') as EmailOtpType | null;
 	const next = url.searchParams.get('next') ?? '/';
 
+	console.log('token_hash:', token_hash);
+
 	const redirectTo = new URL(url);
 	redirectTo.pathname = next;
 	redirectTo.searchParams.delete('token_hash');

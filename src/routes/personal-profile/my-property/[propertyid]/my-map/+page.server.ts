@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals: { supabase, user }, params }) => {
 	if (!user) {
-		redirect(307, '/auth/signin');
+		redirect(401, '/auth/signin');
 	}
 	const { data: propertyGeometryData, error: propertyGeometryError } = await supabase.rpc(
 		'get_property_geometry',

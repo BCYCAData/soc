@@ -4,7 +4,7 @@ import { getMyCommunityTinoneeInformationFormData } from '$lib/server/form.utili
 export const actions: Actions = {
 	default: async ({ request, locals: { supabase, user } }) => {
 		if (!user) {
-			redirect(307, '/auth/signin');
+			redirect(401, '/auth/signin');
 		}
 		const formData = await request.formData();
 		const myCommunityTinoneeInformationFormData =

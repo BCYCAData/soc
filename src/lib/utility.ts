@@ -37,3 +37,19 @@ export const formatPhone = (phoneNumber: string, digit: string) => {
 	}
 	return phoneNumber;
 };
+
+export const getTimestamp = () => {
+	const now: Date = new Date();
+	const year: number = now.getFullYear();
+	const month: number = now.getMonth() + 1;
+	const day: number = now.getDate();
+	const hours: number = now.getHours();
+	const minutes: number = now.getMinutes();
+
+	const formattedMonth = month < 10 ? `0${month}` : `${month}`;
+	const formattedDay = day < 10 ? `0${day}` : `${day}`;
+	const formattedHours = hours < 10 ? `0${hours}` : `${hours}`;
+	const formattedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`;
+
+	return `${year}${formattedMonth}${formattedDay}-${formattedHours}${formattedMinutes}`;
+};

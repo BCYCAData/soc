@@ -107,13 +107,12 @@ export const getMyCommunityFormData = (body: FormData) => {
 	const myCommunityData: ProfileMyCommunityFormData = {
 		stay_in_touch_choices:
 			body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-		userPostalAddressData:
-			{
-				postal_address_street: (body.get('postal_address_street') as string) || null,
-				postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
-				postal_address_postcode: (body.get('postal_address_postcode') as string) || null
-			} || null,
-		hadUserPostalAddress: body.get('had_user_postal_address') as unknown as boolean,
+		userPostalAddressData: {
+			postal_address_street: (body.get('postal_address_street') as string) || null,
+			postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
+			postal_address_postcode: (body.get('postal_address_postcode') as string) || null
+		},
+		hadUserPostalAddress: body.get('had_user_postal_address') === 'true',
 		other_comments: (body.get('other_comments') as string) || null
 	};
 	return myCommunityData;
@@ -122,13 +121,12 @@ export const getMyCommunityBCYCAFormData = (body: FormData) => {
 	const myCommunityBCYCAData: ProfileMyCommunityBCYCAFormData = {
 		stay_in_touch_choices:
 			body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-		userPostalAddressData:
-			{
-				postal_address_street: (body.get('postal_address_street') as string) || null,
-				postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
-				postal_address_postcode: (body.get('postal_address_postcode') as string) || null
-			} || null,
-		hadUserPostalAddress: body.get('had_user_postal_address') as unknown as boolean,
+		userPostalAddressData: {
+			postal_address_street: (body.get('postal_address_street') as string) || null,
+			postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
+			postal_address_postcode: (body.get('postal_address_postcode') as string) || null
+		},
+		hadUserPostalAddress: body.get('had_user_postal_address') === 'true',
 		other_comments: (body.get('other_comments') as string) || null
 	};
 	return myCommunityBCYCAData;
@@ -162,13 +160,12 @@ export const getMyCommunityTinoneeFormData = (body: FormData) => {
 	const myCommunityTinoneeData: ProfileMyCommunityTinoneeFormData = {
 		stay_in_touch_choices:
 			body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-		userPostalAddressData:
-			{
-				postal_address_street: (body.get('postal_address_street') as string) || null,
-				postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
-				postal_address_postcode: (body.get('postal_address_postcode') as string) || null
-			} || null,
-		hadUserPostalAddress: body.get('had_user_postal_address') as unknown as boolean,
+		userPostalAddressData: {
+			postal_address_street: (body.get('postal_address_street') as string) || null,
+			postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
+			postal_address_postcode: (body.get('postal_address_postcode') as string) || null
+		},
+		hadUserPostalAddress: body.get('had_user_postal_address') === 'true',
 		other_comments: (body.get('other_comments') as string) || null
 	};
 	return myCommunityTinoneeData;
@@ -202,17 +199,17 @@ export const getMyCommunityMondrookFormData = (body: FormData) => {
 	const myCommunityMondrookData: ProfileMyCommunityMondrookFormData = {
 		stay_in_touch_choices:
 			body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-		userPostalAddressData:
-			{
-				postal_address_street: (body.get('postal_address_street') as string) || null,
-				postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
-				postal_address_postcode: (body.get('postal_address_postcode') as string) || null
-			} || null,
-		hadUserPostalAddress: body.get('had_user_postal_address') as unknown as boolean,
+		userPostalAddressData: {
+			postal_address_street: (body.get('postal_address_street') as string) || null,
+			postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
+			postal_address_postcode: (body.get('postal_address_postcode') as string) || null
+		},
+		hadUserPostalAddress: body.get('had_user_postal_address') === 'true',
 		other_comments: (body.get('other_comments') as string) || null
 	};
 	return myCommunityMondrookData;
 };
+
 export const getMyCommunityMondrookEventsFormData = (body: FormData) => {
 	const formData: ProfileMyCommunityMondrookEventsFormData = {
 		community_meeting_choices:
@@ -242,13 +239,12 @@ export const getMyCommunityExternalFormData = (body: FormData) => {
 	const myCommunityExternalData: ProfileMyCommunityExternalFormData = {
 		stay_in_touch_choices:
 			body.getAll('stay_in_touch_choices').toString().split(',').map(Number) || null,
-		userPostalAddressData:
-			{
-				postal_address_street: (body.get('postal_address_street') as string) || null,
-				postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
-				postal_address_postcode: (body.get('postal_address_postcode') as string) || null
-			} || null,
-		hadUserPostalAddress: body.get('had_user_postal_address') as unknown as boolean,
+		userPostalAddressData: {
+			postal_address_street: (body.get('postal_address_street') as string) || null,
+			postal_address_suburb: (body.get('postal_address_suburb') as string) || null,
+			postal_address_postcode: (body.get('postal_address_postcode') as string) || null
+		},
+		hadUserPostalAddress: body.get('had_user_postal_address') === 'true',
 		other_comments: (body.get('other_comments') as string) || null
 	};
 	return myCommunityExternalData;

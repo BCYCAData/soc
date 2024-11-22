@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { AppBar } from '@skeletonlabs/skeleton-svelte';
 	import { page } from '$app/stores';
 	import Logo from '$components/page/navigation/Logo.svelte';
@@ -31,7 +31,7 @@
 {#snippet trail()}
 	<div class="flex h-full items-center">
 		{#if $page?.data?.user}
-			{#if $page?.data?.role?.split('_')[0] === 'admin'}
+			{#if $page?.data?.isAdmin}
 				<a
 					class:active={$page.url.pathname.includes('/admin')}
 					href="/admin"

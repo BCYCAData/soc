@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import type { ProfileMenuItem } from '$lib/types';
 
 	type Props = {
@@ -7,11 +8,45 @@
 
 	let { siderbarMenuItems }: Props = $props();
 
+	function isCurrentPath(itemPath: string) {
+		return $page.url.pathname.startsWith(itemPath);
+	}
+
 	let activeSubmenus: string[] = $state(
-		siderbarMenuItems.filter((item) => item.initialOpen).map((item) => item.id)
+		siderbarMenuItems
+			.filter((item) => item.initialOpen || (item.link && isCurrentPath(item.link)))
+			.map((item) => item.id)
 	);
 
 	let activeSubSubmenus: { [key: string]: string[] } = $state({});
+
+	$effect(() => {
+		siderbarMenuItems.forEach((item) => {
+			if (item.subItems) {
+				const activeSubItems = item.subItems
+					.filter((subItem) => subItem.link && isCurrentPath(subItem.link))
+					.map((subItem) => subItem.id);
+
+				if (activeSubItems.length > 0) {
+					activeSubmenus = [...activeSubmenus, item.id];
+					activeSubSubmenus[item.id] = activeSubItems;
+
+					// Handle nested sub-items
+					item.subItems.forEach((subItem) => {
+						if (subItem.subItems) {
+							const activeNestedItems = subItem.subItems
+								.filter((nestedItem) => nestedItem.link && isCurrentPath(nestedItem.link))
+								.map((nestedItem) => nestedItem.id);
+
+							if (activeNestedItems.length > 0) {
+								activeSubSubmenus[item.id] = [...(activeSubSubmenus[item.id] || []), subItem.id];
+							}
+						}
+					});
+				}
+			}
+		});
+	});
 
 	function toggleSubmenu(id: string) {
 		if (activeSubmenus.includes(id)) {
@@ -26,7 +61,7 @@
 		if (activeSubSubmenus[parentId]?.includes(id)) {
 			activeSubSubmenus[parentId] = activeSubSubmenus[parentId].filter((item) => item !== id);
 		} else {
-			activeSubSubmenus[parentId] = [id];
+			activeSubSubmenus[parentId] = [...(activeSubSubmenus[parentId] || []), id];
 		}
 	}
 

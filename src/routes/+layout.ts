@@ -47,9 +47,9 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 	} = await supabase.auth.getUser();
 
 	const communityRequestOptions: TransformedOptionsData = getCommunityOptions(
-		(data.communityRequestOptionsData as CommunityRequestOption[] | undefined)?.filter(
+		data.communityRequestOptions?.filter(
 			(item) => item.community_request_options_concordance !== null
-		) as CommunityRequestOption[]
+		) as unknown as CommunityRequestOption[]
 	);
 	const optionsData = {
 		userOptionsData: communityRequestOptions.find((item) => item.table_name === 'user_profile'),
@@ -71,7 +71,7 @@ export const load: LayoutLoad = async ({ data, depends, fetch }) => {
 		session,
 		supabase,
 		user,
-		premissions: data.permissions,
+		isAdmin: data.isAdmin,
 		coordinatesKYNG: data.coordinatesKYNG,
 		optionsData
 	};
