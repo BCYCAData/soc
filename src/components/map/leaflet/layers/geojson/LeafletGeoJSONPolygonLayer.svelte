@@ -3,37 +3,12 @@
 	import type { Writable } from 'svelte/store';
 	import type L from 'leaflet';
 	import LeafletCustomPolygon from '$components/map/leaflet/symbology/LeafletCustomPolygon.svelte';
-
-	interface LegendItem {
-		symbol: string;
-		description: string;
-	}
-
-	interface GroupedLegendItem {
-		groupName: string;
-		items: LegendItem[];
-	}
-
-	interface LegendInfo {
-		items: (LegendItem | GroupedLegendItem)[];
-	}
-
-	interface LayerInfo {
-		layer: L.Layer;
-		visible: boolean;
-		editable: boolean;
-		showInLegend: boolean;
-		legendInfo: LegendInfo;
-	}
-
-	interface PolygonOptions extends L.PathOptions {
-		fillColour?: string;
-		fillOpacity?: number;
-		colour?: string;
-		weight?: number;
-	}
-
-	type PolygonStyleFunction = (feature: GeoJSON.Feature) => PolygonOptions;
+	import type {
+		PolygonOptions,
+		PolygonStyleFunction,
+		LegendInfo,
+		LayerInfo
+	} from '$lib/leaflet/types';
 
 	interface Props {
 		geojsonData: GeoJSON.FeatureCollection;
@@ -70,8 +45,8 @@
 	let map: L.Map;
 	let layersStore: Writable<Record<string, LayerInfo>>;
 	let layersControl: Writable<L.Control.Layers | null>;
-
 	let geoJSONLayer: L.GeoJSON;
+	let geomanInitialized = false;
 
 	onMount(() => {
 		leaflet = getLeaflet();
@@ -80,9 +55,21 @@
 		layersControl = getLayersControl();
 		if (leaflet && map) {
 			createGeoJSONLayer();
-			setupGeomanControls();
+			initializeGeoman();
 		}
 	});
+
+	function initializeGeoman() {
+		if (map && editable && !geomanInitialized) {
+			// Check if Geoman is available
+			if (map.pm && typeof map.pm.addControls === 'function') {
+				setupGeomanControls();
+				geomanInitialized = true;
+			} else {
+				console.warn('Geoman controls not available for layer:', layerName);
+			}
+		}
+	}
 
 	function getPolygonOptions(feature: GeoJSON.Feature): PolygonOptions {
 		if (typeof polygonOptions === 'function') {
@@ -96,23 +83,51 @@
 	}
 
 	function createGeoJSONLayer() {
-		geoJSONLayer = leaflet.geoJSON(geojsonData, {
+		const defaultGeojsonData = {
+			type: 'FeatureCollection',
+			features: []
+		} as GeoJSON.FeatureCollection;
+
+		const dataToUse = geojsonData?.features?.length ? geojsonData : defaultGeojsonData;
+
+		geoJSONLayer = leaflet.geoJSON(dataToUse, {
 			style: (feature) => getPolygonOptions(feature as GeoJSON.Feature<GeoJSON.Geometry, any>)
 		});
 		geoJSONLayer.addTo(map);
 
-		let legendItems: LegendItem[];
-		if (typeof polygonOptions === 'function') {
-			legendItems = geojsonData.features.map((feature) => {
-				const options = polygonOptions(feature as GeoJSON.Feature<GeoJSON.Geometry, any>);
-				return {
-					symbol: createLegendSymbol(options),
-					description:
-						feature.properties && propertyForStyle
-							? feature.properties[propertyForStyle]
-							: 'Feature'
-				};
+		const legendInfo = createLegendInfo();
+
+		layersStore.update((layers) => ({
+			...layers,
+			[layerName]: {
+				layer: geoJSONLayer,
+				visible,
+				editable,
+				showInLegend,
+				legendInfo
+			}
+		}));
+
+		if (!staticLayer) {
+			layersControl.subscribe((control) => {
+				if (control) {
+					control.addOverlay(geoJSONLayer, layerName);
+				}
 			});
+		}
+
+		if (editable) {
+			enableEditing();
+		}
+	}
+
+	function createLegendInfo(): LegendInfo {
+		let legendItems;
+		if (typeof polygonOptions === 'function') {
+			legendItems = geojsonData.features.map((feature) => ({
+				symbol: createLegendSymbol(polygonOptions(feature)),
+				description: feature.properties?.[propertyForStyle ?? ''] || 'Feature'
+			}));
 		} else if (propertyForStyle && Object.keys(styleMap).length > 0) {
 			legendItems = Object.entries(styleMap).map(([key, value]) => ({
 				symbol: createLegendSymbol({ ...polygonOptions, ...value }),
@@ -126,31 +141,7 @@
 				}
 			];
 		}
-
-		const legendInfo: LegendInfo = {
-			items: legendItems
-		};
-
-		layersStore.update((layers) => ({
-			...layers,
-			[layerName]: {
-				layer: geoJSONLayer,
-				visible: visible,
-				editable: editable,
-				showInLegend: showInLegend,
-				legendInfo: legendInfo
-			}
-		}));
-		if (!staticLayer) {
-			layersControl.subscribe((control) => {
-				if (control) {
-					control.addOverlay(geoJSONLayer, layerName);
-				}
-			});
-		}
-		if (editable) {
-			enableEditing();
-		}
+		return { items: legendItems };
 	}
 
 	function createLegendSymbol(options: PolygonOptions): string {
@@ -159,44 +150,54 @@
 			target: container,
 			props: options as { [key: string]: any }
 		});
-		console.log('container', container.innerHTML);
 		return container.innerHTML.trim();
 	}
 
 	function enableEditing() {
-		geoJSONLayer.pm.enable({
-			allowSelfIntersection: false
-		});
+		if (geoJSONLayer?.pm) {
+			geoJSONLayer.pm.enable({
+				allowSelfIntersection: false
+			});
+		}
 	}
 
 	function disableEditing() {
-		geoJSONLayer.pm.disable();
+		if (geoJSONLayer?.pm) {
+			geoJSONLayer.pm.disable();
+		}
 	}
 
 	function setupGeomanControls() {
+		if (!map.pm?.Toolbar) return;
+
 		const actions = ['add', 'edit', 'delete'] as const;
 		actions.forEach((action) => {
-			map.pm.Toolbar.createCustomControl({
-				name: `${layerName}-${action}`,
-				block: 'custom',
-				title: `${action.charAt(0).toUpperCase() + action.slice(1)} ${layerName}`,
-				onClick: () => handleGeomanAction(action),
-				toggle: true,
-				className: `custom-geoman-${action}-icon`
-			});
+			const controlName = `${layerName}-${action}`;
+			const existingButtons = map.pm.Toolbar.getButtons();
+
+			if (!existingButtons[controlName]) {
+				map.pm.Toolbar.createCustomControl({
+					name: controlName,
+					block: 'custom',
+					title: `${action.charAt(0).toUpperCase() + action.slice(1)} ${layerName}`,
+					onClick: () => handleGeomanAction(action),
+					toggle: true,
+					className: `custom-geoman-${action}-icon`
+				});
+			}
 		});
 	}
 
 	function handleGeomanAction(action: 'add' | 'edit' | 'delete') {
+		if (!geoJSONLayer?.pm) return;
+
 		switch (action) {
 			case 'add':
+			case 'delete':
 				geoJSONLayer.pm.enable();
 				break;
 			case 'edit':
 				enableEditing();
-				break;
-			case 'delete':
-				geoJSONLayer.pm.enable();
 				break;
 		}
 	}

@@ -3,54 +3,16 @@
 	import type { Writable } from 'svelte/store';
 	import type L from 'leaflet';
 	import LeafletCustomMarker from '$components/map/leaflet/symbology/LeafletCustomMarker.svelte';
-
-	interface LegendItem {
-		symbol: string;
-		description: string;
-	}
-
-	interface GroupedLegendItem {
-		groupName: string;
-		items: LegendItem[];
-	}
-
-	interface LegendInfo {
-		items: (LegendItem | GroupedLegendItem)[];
-	}
-
-	interface LayerInfo {
-		layer: L.Layer;
-		visible: boolean;
-		editable: boolean;
-		showInLegend: boolean;
-		legendInfo: LegendInfo;
-	}
-
-	type MarkerShape =
-		| 'text'
-		| 'circle'
-		| 'square'
-		| 'star'
-		| 'triangle'
-		| 'triangle-down'
-		| 'wye'
-		| 'diamond'
-		| 'concentric-circle'
-		| 'concentric-square'
-		| 'concentric-triangle'
-		| 'concentric-diamond';
-
-	interface MarkerOptions {
-		markerShape?: MarkerShape;
-		fillColour?: string;
-		fillOpacity?: number;
-		size?: number;
-		strokeColour?: string;
-		strokeOpacity?: number;
-		strokeWidth?: number;
-	}
-
-	type MarkerStyleFunction = (feature: GeoJSON.Feature) => MarkerOptions;
+	import type {
+		PointSymbologyOptions,
+		AddressPointSymbologyOptions,
+		CustomMarkerOptions,
+		LeafletMarkerOptions,
+		LegendItem,
+		GroupedLegendItem,
+		LegendInfo,
+		LayerInfo
+	} from '$lib/leaflet/types';
 
 	interface Props {
 		geojsonData: GeoJSON.FeatureCollection;
@@ -59,9 +21,9 @@
 		staticLayer: boolean;
 		showInLegend: boolean;
 		editable: boolean;
-		markerOptions?: MarkerOptions | MarkerStyleFunction;
+		symbology: PointSymbologyOptions | AddressPointSymbologyOptions;
 		propertyForSymbol?: string;
-		symbolMap?: Record<string, MarkerOptions>;
+		symbolMap?: Record<string, PointSymbologyOptions>;
 	}
 
 	let {
@@ -71,7 +33,7 @@
 		editable = false,
 		staticLayer = false,
 		showInLegend = true,
-		markerOptions = {},
+		symbology,
 		propertyForSymbol,
 		symbolMap = {}
 	}: Props = $props();
@@ -88,106 +50,96 @@
 	let layersStore: Writable<Record<string, LayerInfo>>;
 	let layersControl: Writable<L.Control.Layers | null>;
 	let geoJSONLayer: L.GeoJSON;
+	let tooltipDirectionCounter: { [key: string]: number } = {};
 
-	onMount(() => {
-		leaflet = getLeaflet();
-		map = getLeafletMap();
-		layersStore = getLeafletLayers();
-		layersControl = getLayersControl();
-		if (leaflet && map) {
-			createGeoJSONLayer();
+	function getTooltipDirection(latlng: L.LatLng): L.TooltipOptions['direction'] {
+		if (!tooltipDirectionCounter[latlng.toString()]) {
+			tooltipDirectionCounter[latlng.toString()] = 0;
 		}
-	});
-
-	function getMarkerOptions(feature: GeoJSON.Feature): MarkerOptions {
-		if (typeof markerOptions === 'function') {
-			return markerOptions(feature);
-		}
-		if (propertyForSymbol && feature.properties && feature.properties[propertyForSymbol]) {
-			const symbolKey = feature.properties[propertyForSymbol];
-			return { ...markerOptions, ...symbolMap[symbolKey] };
-		}
-		return markerOptions;
+		let directionIndex = tooltipDirectionCounter[latlng.toString()]++;
+		return ['right', 'left', 'top', 'bottom', 'center'][
+			directionIndex % 5
+		] as L.TooltipOptions['direction'];
 	}
 
-	function cleanupGeneratedHtml(html: string): string {
-		let cleanHtml = html.replace(/<!--(.*?)-->/g, '');
-		cleanHtml = cleanHtml.trim();
-		if (!cleanHtml) {
-			console.warn('Generated marker HTML is empty after cleaning');
-			return '<div class="empty-marker"></div>';
+	function createPointLayer(feature: GeoJSON.Feature, latlng: L.LatLng): L.Layer {
+		if (symbology.type === 'custom') {
+			const customOptions = symbology.options as CustomMarkerOptions;
+			return leaflet.circleMarker(latlng, {
+				radius: customOptions.size || 1,
+				fillColor: customOptions.fillColour,
+				color: customOptions.strokeColour,
+				weight: customOptions.strokeWidth,
+				opacity: customOptions.strokeOpacity,
+				fillOpacity: customOptions.fillOpacity
+			});
 		}
-		return cleanHtml;
-	}
+		if (symbology.type === 'addressPoint') {
+			const htmlContent = symbology.getSymbol(feature);
+			return leaflet.marker(latlng, {
+				icon: leaflet.divIcon({
+					className: 'diamond-marker',
+					iconAnchor: [3, 6],
+					html: htmlContent
+				})
+			});
+		}
 
-	function createCustomMarker(options: MarkerOptions): string {
-		const container = document.createElement('div');
-		mount(LeafletCustomMarker, {
-			target: container,
-			props: {
-				...options,
-				children: undefined
-			}
-		});
-		const cleanHtml = cleanupGeneratedHtml(container.innerHTML);
-		return cleanHtml;
+		const leafletOptions = symbology.options as LeafletMarkerOptions;
+		switch (leafletOptions.type) {
+			case 'circle':
+				return leaflet.circle(latlng, leafletOptions.options as L.CircleOptions);
+			case 'circleMarker':
+				return leaflet.circleMarker(latlng, leafletOptions.options as L.CircleMarkerOptions);
+			case 'marker':
+				return leaflet.marker(latlng, leafletOptions.options as L.MarkerOptions);
+			case 'divIcon':
+				return leaflet.marker(latlng, {
+					icon: leaflet.divIcon(leafletOptions.options as L.DivIconOptions)
+				});
+			default:
+				return leaflet.marker(latlng);
+		}
 	}
 
 	function createGeoJSONLayer() {
-		geoJSONLayer = leaflet.geoJSON(geojsonData, {
+		const defaultGeojsonData = {
+			type: 'FeatureCollection',
+			features: []
+		} as GeoJSON.FeatureCollection;
+
+		const dataToUse = geojsonData?.features?.length ? geojsonData : defaultGeojsonData;
+
+		geoJSONLayer = leaflet.geoJSON(dataToUse, {
 			pointToLayer: (feature, latlng) => {
-				const options = getMarkerOptions(feature);
-				const markerHtml = createCustomMarker(options);
-				return leaflet.marker(latlng, {
-					icon: leaflet.divIcon({
-						html: markerHtml,
-						className: 'custom-geojson-marker',
-						iconSize: [options.size ?? 10, options.size ?? 10],
-						iconAnchor: [(options.size ?? 10) / 2, (options.size ?? 10) / 2]
-					})
-				});
+				const layer = createPointLayer(feature, latlng);
+
+				if (feature.properties?.['House Number']) {
+					const direction = getTooltipDirection(latlng);
+					layer.bindTooltip(feature.properties['House Number'], {
+						permanent: true,
+						direction,
+						className: 'custom-label',
+						offset: [-7, -10]
+					});
+				}
+
+				return layer;
 			}
 		});
-		geoJSONLayer.addTo(map);
-		let legendItems: LegendItem[];
-		console.log('typeof markerOptions', markerOptions);
-		if (typeof markerOptions === 'function') {
-			legendItems = geojsonData.features.map((feature) => {
-				const options = markerOptions(feature);
-				return {
-					symbol: createCustomMarker(options),
-					description:
-						feature.properties && propertyForSymbol
-							? feature.properties[propertyForSymbol]
-							: 'Feature'
-				};
-			});
-		} else if (propertyForSymbol && Object.keys(symbolMap).length > 0) {
-			legendItems = Object.entries(symbolMap).map(([key, value]) => ({
-				symbol: createCustomMarker({ ...markerOptions, ...value }),
-				description: key
-			}));
-		} else {
-			legendItems = [
-				{
-					symbol: createCustomMarker(markerOptions),
-					description: layerName
-				}
-			];
-		}
 
-		const legendInfo: LegendInfo = {
-			items: legendItems
-		};
+		geoJSONLayer.addTo(map);
+
+		const legendInfo = createLegendInfo();
 
 		layersStore.update((layers) => ({
 			...layers,
 			[layerName]: {
 				layer: geoJSONLayer,
-				visible: visible,
-				editable: editable,
-				showInLegend: showInLegend,
-				legendInfo: legendInfo
+				visible,
+				editable,
+				showInLegend,
+				legendInfo
 			}
 		}));
 
@@ -199,6 +151,97 @@
 			});
 		}
 	}
+
+	function createLegendInfo(): LegendInfo {
+		let legendItems: LegendItem[];
+
+		if (symbology.type === 'addressPoint') {
+			legendItems = [
+				{
+					symbol: symbology.getSymbol({ properties: {} } as GeoJSON.Feature),
+					description: layerName
+				}
+			];
+		} else {
+			// Handle standard point symbology legend
+			legendItems = [
+				{
+					symbol: createLegendSymbol(symbology.options as LeafletMarkerOptions),
+					description: layerName
+				}
+			];
+		}
+
+		return { items: legendItems };
+	}
+
+	function createLegendSymbol(options: LeafletMarkerOptions): string {
+		const container = document.createElement('div');
+
+		// Map Leaflet marker types to custom marker shapes
+		const markerTypeToShape = {
+			circle: 'circle',
+			marker: 'circle',
+			circleMarker: 'circle',
+			divIcon: 'circle'
+		} as const;
+
+		// Get the appropriate options based on marker type
+		const getMarkerOptions = (opts: LeafletMarkerOptions) => {
+			switch (opts.type) {
+				case 'circleMarker':
+					const circleOpts = opts.options as L.CircleMarkerOptions;
+					return {
+						markerShape: markerTypeToShape[opts.type],
+						fillColour: circleOpts.fillColor || '#3388ff',
+						fillOpacity: circleOpts.fillOpacity || 1,
+						size: circleOpts.radius || 10,
+						strokeColour: circleOpts.color || '#3388ff',
+						strokeOpacity: circleOpts.opacity || 1,
+						strokeWidth: circleOpts.weight || 0
+					};
+				case 'divIcon':
+					const divOpts = opts.options as L.DivIconOptions;
+					return {
+						markerShape: markerTypeToShape[opts.type],
+						size: 10,
+						fillColour: '#3388ff',
+						fillOpacity: 1,
+						strokeColour: '#3388ff',
+						strokeOpacity: 1,
+						strokeWidth: 0
+					};
+				default:
+					return {
+						markerShape: markerTypeToShape[opts.type],
+						size: 10,
+						fillColour: '#3388ff',
+						fillOpacity: 1,
+						strokeColour: '#3388ff',
+						strokeOpacity: 1,
+						strokeWidth: 0
+					};
+			}
+		};
+
+		mount(LeafletCustomMarker, {
+			target: container,
+			props: getMarkerOptions(options)
+		});
+
+		return container.innerHTML.trim();
+	}
+
+	onMount(() => {
+		leaflet = getLeaflet();
+		map = getLeafletMap();
+		layersStore = getLeafletLayers();
+		layersControl = getLayersControl();
+		if (leaflet && map) {
+			createGeoJSONLayer();
+		}
+	});
+
 	$effect(() => {
 		if (geoJSONLayer && geojsonData) {
 			geoJSONLayer.clearLayers();
@@ -223,15 +266,3 @@
 		}
 	});
 </script>
-
-<!-- To use this for classified symbols:
- 
-// Property to use for symbolization
-const propertyForSymbol = 'category';
-
-// Symbol map defining styles for each category
-const symbolMap = {
-  'category1': { markerShape: 'circle', fillColour: 'red', size: 12 },
-  'category2': { markerShape: 'square', fillColour: 'blue', size: 14 },
-  'category3': { markerShape: 'triangle', fillColour: 'green', size: 16 },
-}; -->

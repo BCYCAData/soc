@@ -5,13 +5,12 @@ import {
 	sendPostgRestErrorEmail,
 	type PostgRestErrorEmailSubject
 } from '$lib/server/email/nodemailer';
-import { getUserPermissions } from '$lib/server/auth.utilities';
 
 export const load: LayoutServerLoad = async ({ locals: { supabase, getSessionAndUser } }) => {
-	const { user, user_role, coordinatesKYNG } = await getSessionAndUser();
+	const { user, user_roles, coordinatesKYNG } = await getSessionAndUser();
 	if (!user) {
 		console.log('User not found');
-		redirect(401, '/auth/signin');
+		redirect(302, '/auth/signin');
 	}
 
 	let { data: user_profile, error: userProfileError } = await supabase.rpc('get_profile_for_user', {

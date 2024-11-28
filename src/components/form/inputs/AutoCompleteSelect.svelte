@@ -54,13 +54,15 @@
 			targetData = JSON.stringify(targetValues);
 		}
 	};
+
+	const listId = `autocomplete-${Math.random().toString(36).slice(2)}`;
 </script>
 
 <div>
 	<div class="relative mt-1.5">
 		<input
 			type="text"
-			list="autocompleteList"
+			list={listId}
 			class="mr-2 w-full rounded-md border border-gray-300 px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
 			{placeholder}
 			bind:value={inputValue}
@@ -70,7 +72,7 @@
 		<input name="target_data" type="hidden" bind:value={targetData} />
 	</div>
 
-	<datalist id="autocompleteList">
+	<datalist id={listId}>
 		{#each sortedListData.filter((item) => !selectedValues.includes(item.lut_text)) as item}
 			<option value={item.lut_text}></option>
 		{/each}

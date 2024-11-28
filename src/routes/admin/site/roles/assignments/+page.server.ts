@@ -22,15 +22,16 @@ async function validateUserPermissions(
 	getSessionAndUser: () => Promise<any>,
 	requiredPermission: string
 ) {
-	const { user, user_role } = await getSessionAndUser();
-	if (!user || !user_role) {
+	const { user, user_roles } = await getSessionAndUser();
+	if (!user || !user_roles) {
 		throw error(401, 'Unauthorized access');
 	}
-	const permissions = await getUserPermissions(supabase, user.id, user_role);
+	const permissions = await getUserPermissions(supabase, user.id, user_roles);
+
 	if (!permissions.includes(requiredPermission)) {
 		throw error(403, 'Insufficient permissions');
 	}
-	return { user, user_role, permissions };
+	return { user, user_roles, permissions };
 }
 
 export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUser } }) => {
@@ -51,7 +52,6 @@ export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUs
 				email: role.email
 			})
 		) || [];
-	console.log('permissions', permissions);
 
 	return {
 		roles,
@@ -64,20 +64,22 @@ export const actions: Actions = {
 	assignRole: async ({ request, locals: { supabase, getSessionAndUser } }) => {
 		await validateUserPermissions(supabase, getSessionAndUser, REQUIRED_PERMISSION);
 		const formData = await request.formData();
-		const userId = formData.get('userId');
+		const target_data = formData.get('target_data');
+		if (!target_data) {
+			throw error(400, 'Target data is missing');
+		}
+		const user_id = JSON.parse(target_data as string)[0];
 		const role = formData.get('role');
 
-		const { error: assignError } = await supabase
-			.from('user_roles')
-			.insert({ user_id: userId, role });
+		const { error: assignError } = await supabase.from('user_roles').upsert({ user_id, role });
 
 		if (assignError) {
-			throw error(400, 'Failed to assign role');
+			console.log('assignError', assignError);
+			throw error(400, assignError.details);
 		}
 
 		return { success: true };
 	},
-
 	removeRole: async ({ request, locals: { supabase, getSessionAndUser } }) => {
 		await validateUserPermissions(supabase, getSessionAndUser, REQUIRED_PERMISSION);
 		const formData = await request.formData();

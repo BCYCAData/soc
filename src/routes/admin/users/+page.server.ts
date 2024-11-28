@@ -12,7 +12,7 @@ const template = Tester;
 export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUser }, parent }) => {
 	const { user } = await getSessionAndUser();
 	if (!user) {
-		redirect(401, '/auth/signin');
+		redirect(302, '/auth/signin');
 	}
 	const parentData = await parent();
 	if (!parentData.permissions.includes('admin.users')) {
@@ -35,11 +35,11 @@ export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUs
 
 export const actions: Actions = {
 	testemail: async ({ request, locals: { supabase, getSessionAndUser } }) => {
-		const { user, user_role } = await getSessionAndUser();
-		if (!user || !user_role) {
+		const { user, user_roles } = await getSessionAndUser();
+		if (!user || !user_roles) {
 			return { success: false, error: 'Unauthorized' };
 		}
-		const permissions = await getUserPermissions(supabase, user.id, user_role);
+		const permissions = await getUserPermissions(supabase, user.id, user_roles);
 		if (!permissions.includes('admin.users')) {
 			return { success: false, error: 'Forbidden' };
 		}
@@ -47,7 +47,7 @@ export const actions: Actions = {
 		// 	const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
 		// 		if (session) {
 		// 			const jwt = jwtDecode<CustomJwtPayload>(session.access_token);
-		// 			const userRole = jwt.user_role;
+		// 			const userRole = jwt.user_roles;
 		// 			if (userRole?.split('_')[0] !== 'admin') {
 		// 				error(403, { message: 'Forbidden' });
 		// 			}
@@ -89,7 +89,7 @@ export const actions: Actions = {
 		// const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
 		// 	if (session) {
 		// 		const jwt = jwtDecode<CustomJwtPayload>(session.access_token);
-		// 		const userRole = jwt.user_role;
+		// 		const userRole = jwt.user_roles;
 		// 		if (userRole?.split('_')[0] !== 'admin') {
 		// 			error(403, { message: 'Forbidden' });
 		// 		}

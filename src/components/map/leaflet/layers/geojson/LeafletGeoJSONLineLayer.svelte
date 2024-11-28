@@ -4,29 +4,7 @@
 	import type L from 'leaflet';
 	import LeafletCustomLine from '$components/map/leaflet/symbology/LeafletCustomLine.svelte';
 
-	interface LegendItem {
-		symbol: string;
-		description: string;
-	}
-
-	interface GroupedLegendItem {
-		groupName: string;
-		items: LegendItem[];
-	}
-
-	interface LegendInfo {
-		items: (LegendItem | GroupedLegendItem)[];
-	}
-
-	interface LayerInfo {
-		layer: L.Layer;
-		visible: boolean;
-		editable: boolean;
-		showInLegend: boolean;
-		legendInfo: LegendInfo;
-	}
-
-	type PolygonStyleFunction = (feature: GeoJSON.Feature) => L.PathOptions;
+	import type { PolygonStyleFunction, LegendItem, LegendInfo, LayerInfo } from '$lib/leaflet/types';
 
 	interface Props {
 		geojsonData: GeoJSON.FeatureCollection;
@@ -87,7 +65,14 @@
 	}
 
 	function createGeoJSONLayer() {
-		geoJSONLayer = leaflet.geoJSON(geojsonData, {
+		const defaultGeojsonData = {
+			type: 'FeatureCollection',
+			features: []
+		} as GeoJSON.FeatureCollection;
+
+		const dataToUse = geojsonData?.features?.length ? geojsonData : defaultGeojsonData;
+
+		geoJSONLayer = leaflet.geoJSON(dataToUse, {
 			style: (feature) => getPolygonOptions(feature as GeoJSON.Feature<GeoJSON.Geometry, any>)
 		});
 		geoJSONLayer.addTo(map);

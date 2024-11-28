@@ -25,9 +25,10 @@
 		data.user_profile.community_external_profile?.will_run_community_workshops
 	);
 
-	const communityWorkshopOptions = data.optionsData.communityExternalOptionsData?.object_names.find(
-		(item: { object_name: string }) => item.object_name === 'communityWorkshopOptions'
-	)?.options;
+	const communityWorkshopOptions =
+		data?.optionsData?.communityExternalOptionsData?.object_names.find(
+			(item: { object_name: string }) => item.object_name === 'communityWorkshopOptions'
+		)?.options;
 
 	function handleReset() {
 		if (confirm('Are you sure you want to undo? All unsaved changes will be lost.')) {

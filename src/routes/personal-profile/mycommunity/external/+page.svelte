@@ -25,7 +25,7 @@
 	let userPostalAddress: UserPostalAddress = $state(data.user_profile?.user_postal_address);
 	let hadUserPostalAddress = $state(data.hadUserPostalAddress);
 
-	const stayInTouchOptions = data.optionsData.communityExternalOptionsData?.object_names.find(
+	const stayInTouchOptions = data?.optionsData?.communityExternalOptionsData?.object_names.find(
 		(item: { object_name: string }) => item.object_name === 'stayInTouchOptions'
 	)?.options;
 

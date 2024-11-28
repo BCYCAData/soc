@@ -25,15 +25,15 @@ async function validateUserPermissions(
 	getSessionAndUser: () => Promise<any>,
 	requiredPermission: string
 ) {
-	const { user, user_role } = await getSessionAndUser();
-	if (!user || !user_role) {
+	const { user, user_roles } = await getSessionAndUser();
+	if (!user || !user_roles) {
 		throw error(401, 'Unauthorized access');
 	}
-	const permissions = await getUserPermissions(supabase, user.id, user_role);
+	const permissions = await getUserPermissions(supabase, user.id, user_roles);
 	if (!permissions.includes(requiredPermission)) {
 		throw error(403, 'Insufficient permissions');
 	}
-	return { user, user_role, permissions };
+	return { user, user_roles, permissions };
 }
 
 async function sendMessage(supabase: any, message: string, context?: MessageContext, ids?: string) {

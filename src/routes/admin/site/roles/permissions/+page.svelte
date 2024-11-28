@@ -14,6 +14,8 @@
 	let selectedRole = $state('');
 	let newRole = $state('');
 	let selectedPermissions = $state<string[]>([]);
+	let newPermission = $state('');
+	let customPermissions = $state<string[]>([]);
 
 	function flattenPermissions(tree: object, prefix = ''): string[] {
 		return Object.entries(tree).flatMap(([key, value]) => {
@@ -33,18 +35,41 @@
 		selectedPermissions = roleData?.permission.split(',') || [];
 	}
 
+	function addCustomPermission() {
+		if (newPermission && !customPermissions.includes(newPermission)) {
+			customPermissions = [...customPermissions, newPermission];
+			selectedPermissions = [...selectedPermissions, newPermission];
+			newPermission = '';
+		}
+	}
+
+	function removeCustomPermission(permission: string) {
+		customPermissions = customPermissions.filter((p) => p !== permission);
+		selectedPermissions = selectedPermissions.filter((p) => p !== permission);
+	}
+
+	$effect(() => {
+		const roleData = data.rolePermissions.find((r) => r.role === selectedRole);
+		selectedPermissions = roleData?.permission.split(',') || [];
+	});
+
 	const handleSubmit: SubmitFunction = () => {
 		return async ({ result }) => {
 			if (result.type === 'success') {
-				await invalidateAll();
+				isLoading = true;
+				if (result.type === 'success') {
+					await invalidateAll();
+				}
+				isLoading = false;
 			}
 		};
 	};
 
+	let isLoading = $state(false);
 	const value = $state(['']);
 </script>
 
-<Accordion spaceY="space-y-1" {value} collapsible>
+<Accordion spaceY="space-y-1" {value} collapsible={true}>
 	<Accordion.Item value="0" classes="bg-orange-100 font-medium">
 		{#snippet control()}Current Roles{/snippet}
 		{#snippet panel()}
@@ -81,8 +106,19 @@
 										</label>
 									{/each}
 								</div>
-								<input type="hidden" name="permissions" value={selectedPermissions.join(',')} />
-								<button type="submit" class="btn-primary btn">Update Permissions</button>
+								<div class="flex justify-end">
+									<button
+										type="submit"
+										class="mt-4 rounded-full bg-tertiary-400 px-6 py-2 text-center text-base hover:bg-orange-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+										disabled={isLoading}
+									>
+										{#if isLoading}
+											<span class="spinner">🔄</span>
+										{:else}
+											Update Permissions
+										{/if}
+									</button>
+								</div>
 							</form>
 						</div>
 					{/if}
@@ -90,7 +126,8 @@
 			{/each}
 		{/snippet}
 	</Accordion.Item>
-	<Accordion.Item value="2" classes="bg-orange-100 font-medium">
+
+	<Accordion.Item value="1" classes="bg-orange-100 font-medium">
 		{#snippet control()}Add New Role{/snippet}
 		{#snippet panel()}
 			<form method="POST" action="?/addRole" use:enhance class="space-y-4">
@@ -98,14 +135,57 @@
 					<label for="role">Role Name</label>
 					<input
 						type="text"
+						id="role"
 						name="role"
 						bind:value={newRole}
 						class="w-full rounded border p-2"
 						required
 					/>
 				</div>
+
+				<div class="space-y-2">
+					<label for="customPermission">Add Custom Permission</label>
+					<div class="flex gap-2">
+						<input
+							type="text"
+							id="customPermission"
+							bind:value={newPermission}
+							placeholder="Enter custom permission (e.g., admin.custom.action)"
+							class="flex-1 rounded border p-2"
+						/>
+						<button
+							type="button"
+							class="rounded-full bg-tertiary-400 px-4 py-2 text-center hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+							onclick={addCustomPermission}
+							disabled={!newPermission}
+						>
+							Add
+						</button>
+					</div>
+				</div>
+
+				{#if customPermissions.length > 0}
+					<div class="space-y-2">
+						<span>Custom Permissions</span>
+						<div class="space-y-1">
+							{#each customPermissions as permission}
+								<div class="flex items-center justify-between rounded bg-orange-50 p-2">
+									<span>{permission}</span>
+									<button
+										type="button"
+										class="text-red-600 hover:text-red-800"
+										onclick={() => removeCustomPermission(permission)}
+									>
+										Remove
+									</button>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+
 				<div>
-					<label for="permissions">Permissions</label>
+					<span>Existing Permissions</span>
 					<div class="max-h-96 space-y-2 overflow-y-auto">
 						{#each allPermissions as permission}
 							<label class="flex items-center">
@@ -120,9 +200,35 @@
 						{/each}
 					</div>
 				</div>
+
 				<input type="hidden" name="permissions" value={selectedPermissions.join(',')} />
-				<button type="submit" class="btn-primary btn">Add Role</button>
+
+				<div class="flex justify-end">
+					<button
+						type="submit"
+						class="mt-4 rounded-full bg-tertiary-400 px-6 py-2 text-center text-base hover:bg-orange-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+						disabled={!selectedPermissions.length || !newRole}
+					>
+						Add Role
+					</button>
+				</div>
 			</form>
 		{/snippet}
 	</Accordion.Item>
 </Accordion>
+
+<style>
+	.spinner {
+		display: inline-block;
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>

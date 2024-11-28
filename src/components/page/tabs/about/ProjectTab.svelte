@@ -1,29 +1,6 @@
 <script lang="ts">
 	import '../../../../app.postcss';
-
-	type MarkerShape =
-		| 'text'
-		| 'circle'
-		| 'square'
-		| 'star'
-		| 'triangle'
-		| 'triangle-down'
-		| 'wye'
-		| 'diamond'
-		| 'concentric-circle'
-		| 'concentric-square'
-		| 'concentric-triangle'
-		| 'concentric-diamond';
-
-	interface MarkerOptions {
-		markerShape?: MarkerShape;
-		fillColour?: string;
-		fillOpacity?: number;
-		size?: number;
-		strokeColour?: string;
-		strokeOpacity?: number;
-		strokeWidth?: number;
-	}
+	import type { PointSymbologyOptions } from '$lib/leaflet/types';
 
 	interface AddressPointsGeoJSON {
 		allAddresspoints: GeoJSON.FeatureCollection<GeoJSON.Point, AllAddressPointProperties>;
@@ -31,7 +8,7 @@
 			GeoJSON.Point,
 			RegisteredAddressPointProperties
 		>;
-		bounds: L.LatLngBoundsExpression | [[number, number], [number, number]];
+		initialExtent: L.LatLngBoundsExpression | [[number, number], [number, number]];
 		centre: L.LatLngExpression | [number, number];
 	}
 
@@ -56,9 +33,11 @@
 	];
 
 	const mapConfig = {
-		bounds: addressPointsGeoJSON.bounds,
+		centre: undefined,
+		zoom: undefined,
 		minZoom: undefined,
 		maxZoom: undefined,
+		initialExtent: addressPointsGeoJSON.initialExtent,
 		zoomable: true,
 		zoomSnap: 0.25,
 		scaleControl: { present: true, position: 'bottomleft' as L.ControlPosition },
@@ -69,25 +48,30 @@
 		height: '99%',
 		baseLayers: baseLayers
 	};
-
-	const projectAddresspointsOptions: MarkerOptions = {
-		markerShape: 'circle',
-		fillColour: '#a5a5a5',
-		size: 6,
-		strokeColour: '#000',
-		strokeWidth: 0,
-		strokeOpacity: 0,
-		fillOpacity: 0.8
+	const projectAddresspointsOptions: PointSymbologyOptions = {
+		type: 'custom',
+		options: {
+			markerShape: 'circle',
+			fillColour: '#a5a5a5',
+			size: 6,
+			strokeColour: '#000',
+			strokeWidth: 0,
+			strokeOpacity: 0,
+			fillOpacity: 0.8
+		}
 	};
 
-	const registeredAddresspointsOptions: MarkerOptions = {
-		markerShape: 'circle',
-		fillColour: '#f97316',
-		size: 8,
-		strokeColour: '#000',
-		strokeWidth: 0,
-		strokeOpacity: 0,
-		fillOpacity: 1
+	const registeredAddresspointsOptions: PointSymbologyOptions = {
+		type: 'custom',
+		options: {
+			markerShape: 'circle',
+			fillColour: '#f97316',
+			size: 8,
+			strokeColour: '#000',
+			strokeWidth: 0,
+			strokeOpacity: 0,
+			fillOpacity: 1
+		}
 	};
 </script>
 
@@ -99,8 +83,8 @@
 	<header class="main-headlines mx-auto text-center">
 		<h1 class="text-primary h1 sm:block">Strengthen OUR Community</h1>
 		<strong class="pt-4">
-			This project is about empowering our community to take responsibility for being prepared<br
-			/>and working together to make a difference.
+			This project is about empowering our community to take responsibility for being prepared<br />
+			and working together to make a difference.
 		</strong>
 	</header>
 
@@ -147,7 +131,7 @@
 							editable={false}
 							showInLegend={false}
 							staticLayer={true}
-							markerOptions={projectAddresspointsOptions}
+							symbology={projectAddresspointsOptions}
 						/>
 						<LeafletGeoJSONPointLayer
 							geojsonData={addressPointsGeoJSON.registeredAddresspoints}
@@ -156,7 +140,7 @@
 							editable={false}
 							showInLegend={false}
 							staticLayer={true}
-							markerOptions={registeredAddresspointsOptions}
+							symbology={registeredAddresspointsOptions}
 						/>
 					{/await}
 					{#await import('$components/map/leaflet/controls/LeafletScaleControl.svelte') then { default: LeafletScaleControl }}
@@ -182,8 +166,8 @@
 	}
 	.main-map {
 		grid-area: map-area;
-		min-height: 0; /* This is crucial for grid items to shrink below their content size */
-		display: flex; /* Use flexbox to ensure child elements (like the map) expand fully */
+		min-height: 0;
+		display: flex;
 		flex-direction: column;
 	}
 	.wrapper {
@@ -204,6 +188,6 @@
 
 	:global(.main-map > *) {
 		flex: 1;
-		min-height: 0; /* Allow the map to shrink if needed */
+		min-height: 0;
 	}
 </style>

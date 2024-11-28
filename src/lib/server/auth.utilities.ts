@@ -12,23 +12,25 @@ export const hasAdminPermission = (permissions: string | string[]) => {
 export async function getUserPermissions(
 	supabase: SupabaseClient,
 	userId: string | undefined,
-	user_role: string
+	user_roles: string[]
 ) {
 	const { data: permissionData, error: permissionError } = await supabase
 		.from('role_permissions')
 		.select('permission')
-		.eq('role', user_role)
-		.single();
+		.in('role', user_roles);
 
 	if (permissionError) {
 		console.error('Error fetching permission:', permissionError);
 		error(401, 'Failed to fetch permissions');
-	} else if (!permissionData || !permissionData.permission.includes('admin')) {
+	}
+	const permission = [...new Set(permissionData?.map((p) => p.permission))].join(',');
+
+	if (!permissionData || !permission.includes('admin')) {
 		console.error('Forbidden attempt on /admin by userId:', userId);
 		error(403, 'Forbidden');
 	}
 
-	return permissionData.permission;
+	return permission;
 }
 
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes

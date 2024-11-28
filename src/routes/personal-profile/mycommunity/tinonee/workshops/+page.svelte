@@ -26,7 +26,7 @@
 	);
 
 	const communityWorkshopOptions = $derived(
-		data.optionsData.communityTinoneeOptionsData?.object_names.find(
+		data?.optionsData?.communityTinoneeOptionsData?.object_names.find(
 			(item: { object_name: string }) => item.object_name === 'communityWorkshopOptions'
 		)?.options
 	);

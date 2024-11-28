@@ -26,7 +26,7 @@
 		data.user_profile?.community_bcyca_profile?.will_run_community_workshops
 	);
 
-	const communityWorkshopOptions = data.optionsData.communityBCYCAOptionsData?.object_names.find(
+	const communityWorkshopOptions = data?.optionsData?.communityBCYCAOptionsData?.object_names.find(
 		(item: { object_name: string }) => item.object_name === 'communityWorkshopOptions'
 	)?.options;
 

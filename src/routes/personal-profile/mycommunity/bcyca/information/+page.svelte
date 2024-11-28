@@ -24,7 +24,7 @@
 		data.user_profile?.community_bcyca_profile?.other_information_sheet
 	);
 
-	const informationSheetOptions = data.optionsData.communityBCYCAOptionsData?.object_names.find(
+	const informationSheetOptions = data?.optionsData?.communityBCYCAOptionsData?.object_names.find(
 		(item: { object_name: string }) => item.object_name === 'informationSheetOptions'
 	)?.options;
 

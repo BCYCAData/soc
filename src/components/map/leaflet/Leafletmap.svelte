@@ -4,39 +4,19 @@
 	import GeomanControls from '$components/map/leaflet/controls/GeomanControls.svelte';
 
 	import type L from 'leaflet';
+	import type {
+		LegendItem,
+		GroupedLegendItem,
+		LegendInfo,
+		LayerInfo,
+		ControlInfo
+	} from '$lib/leaflet/types';
 
 	import { writable, type Writable } from 'svelte/store';
 
-	interface ControlInfo {
-		present: boolean;
-		position?: L.ControlPosition;
-	}
-
-	interface LegendItem {
-		symbol: string;
-		description: string;
-	}
-
-	interface GroupedLegendItem {
-		groupName: string;
-		items: LegendItem[];
-	}
-
-	interface LegendInfo {
-		items: (LegendItem | GroupedLegendItem)[];
-	}
-
-	interface LayerInfo {
-		layer: L.Layer;
-		visible: boolean;
-		editable: boolean;
-		showInLegend: boolean;
-		legendInfo: LegendInfo;
-	}
-
 	interface Props {
 		centre?: L.LatLngExpression | [number, number] | undefined;
-		bounds?: L.LatLngBoundsExpression | [[number, number], [number, number]] | undefined;
+		initialExtent?: L.LatLngBoundsExpression | [[number, number], [number, number]] | undefined;
 		zoom?: number | undefined;
 		minZoom?: number | undefined;
 		maxZoom?: number | undefined;
@@ -54,7 +34,7 @@
 	let {
 		centre = undefined,
 		zoom = undefined,
-		bounds = undefined,
+		initialExtent = undefined,
 		minZoom = undefined,
 		maxZoom = undefined,
 		zoomable = true,
@@ -83,10 +63,6 @@
 	let leaflet = $state<typeof L>();
 	let leafletMap = $state<L.Map>();
 	let mapDiv: HTMLDivElement;
-
-	$effect(() => {
-		console.log('leaflet updated');
-	});
 
 	// Controls
 	let layersControlInstance: L.Control.Layers;
@@ -152,8 +128,8 @@
 				zoomControl,
 				attributionControl: attributionControl.present
 			});
-			if (bounds) {
-				leafletMap.fitBounds(bounds);
+			if (initialExtent) {
+				leafletMap.fitBounds(initialExtent);
 			} else if (centre) {
 				leafletMap.setView(centre, zoom);
 			}

@@ -22,7 +22,7 @@
 	let otherCommunityMeeting = $state(
 		data.user_profile?.community_bcyca_profile?.other_community_meeting
 	);
-	const communityMeetingOptions = data.optionsData.communityBCYCAOptionsData?.object_names.find(
+	const communityMeetingOptions = data?.optionsData?.communityBCYCAOptionsData?.object_names.find(
 		(item: { object_name: string }) => item.object_name === 'communityMeetingOptions'
 	)?.options;
 

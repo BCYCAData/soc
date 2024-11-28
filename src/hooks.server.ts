@@ -24,18 +24,19 @@ const supabase: Handle = async ({ event, resolve }) => {
 	event.locals.getSessionAndUser = async (): Promise<{
 		session: Session | null;
 		user: User | null;
-		user_role: string | null;
+		user_roles: string[] | null;
 		coordinatesKYNG: string[] | null;
 	}> => {
 		try {
 			const {
 				data: { session }
 			} = await event.locals.supabase.auth.getSession();
+
 			if (!session) {
 				return {
 					session: null,
 					user: null,
-					user_role: null,
+					user_roles: null,
 					coordinatesKYNG: null
 				};
 			}
@@ -48,39 +49,17 @@ const supabase: Handle = async ({ event, resolve }) => {
 				return {
 					session: null,
 					user: null,
-					user_role: null,
+					user_roles: null,
 					coordinatesKYNG: null
 				};
 			}
-			// const { user: _, ...sessionWithoutUser } = session;
-			// console.log('user from hooks', user);
-			// const sessionWithUserFromUser: Session = {
-			// 	...sessionWithoutUser,
-			// 	user: { ...user, id: user.id }
-			// };
-			const { user_role, coordinates_kyng } = JSON.parse(atob(session.access_token.split('.')[1]));
 
-			// Fetch the permission from the role_permissions table
-			// const { data: permissionData, error: permissionError } = await event.locals.supabase
-			// 	.from('role_permissions')
-			// 	.select('permission')
-			// 	.eq('role', user_role)
-			// 	.single();
-
-			// if (permissionError) {
-			// 	console.error('Error fetching permission:', permissionError);
-			// 	return {
-			// 		session: session,
-			// 		user,
-			// 		user_role,
-			// 		coordinatesKYNG: null
-			// 	};
-			// }
-
+			const { user_roles, coordinates_kyng } = JSON.parse(atob(session.access_token.split('.')[1]));
+			console.log('hooks coordinates_kyng', coordinates_kyng);
 			return {
 				session,
 				user,
-				user_role,
+				user_roles,
 				coordinatesKYNG: coordinates_kyng
 			};
 		} catch (error) {
@@ -88,7 +67,7 @@ const supabase: Handle = async ({ event, resolve }) => {
 			return {
 				session: null,
 				user: null,
-				user_role: null,
+				user_roles: null,
 				coordinatesKYNG: null
 			};
 		}
@@ -100,24 +79,6 @@ const supabase: Handle = async ({ event, resolve }) => {
 		}
 	});
 };
-
-// const authGuard: Handle = async ({ event, resolve }) => {
-// 	const { session, user, permissions, coordinatesKYNG } = await event.locals.getSessionAndUser();
-// 	event.locals.session = session;
-// 	event.locals.user = user;
-// 	event.locals.permissions = permissions;
-// 	event.locals.coordinatesKYNG = coordinatesKYNG;
-
-// 	if (!session && event.url.pathname.startsWith('/private')) {
-// 		throw redirect(303, '/auth');
-// 	}
-
-// 	if (session && event.url.pathname === '/auth') {
-// 		throw redirect(303, '/private');
-// 	}
-
-// 	return resolve(event);
-// };
 
 const originalConsoleWarn = console.warn;
 

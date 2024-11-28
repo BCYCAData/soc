@@ -5,7 +5,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUser }, parent }) => {
 	const { user } = await getSessionAndUser();
 	if (!user) {
-		redirect(401, '/auth/signin');
+		redirect(302, '/auth/signin');
 	}
 	const parentData = await parent();
 	if (!parentData.permissions.includes('admin.mondrook.events')) {

@@ -7,13 +7,12 @@
 	}
 
 	let { siderbarMenuItems }: Props = $props();
+	let currentPath = $state($page.url.pathname);
 
-	// Function to check if a path matches or is parent of current URL
 	function isCurrentPath(itemPath: string) {
-		return $page.url.pathname.startsWith(itemPath);
+		return currentPath.startsWith(itemPath);
 	}
 
-	// Initialize active menus based on current path
 	let activeSubmenus: string[] = $state(
 		siderbarMenuItems
 			.filter((item) => item.initialOpen || (item.link && isCurrentPath(item.link)))
@@ -22,20 +21,29 @@
 
 	let activeSubSubmenus: { [key: string]: string[] } = $state({});
 
-	// Initialize sub-submenus based on current path
 	$effect(() => {
-		siderbarMenuItems.forEach((item) => {
-			if (item.subItems) {
-				const activeSubItems = item.subItems
-					.filter((subItem) => subItem.link && isCurrentPath(subItem.link))
-					.map((subItem) => subItem.id);
+		if (currentPath !== $page.url.pathname) {
+			currentPath = $page.url.pathname;
 
-				if (activeSubItems.length > 0) {
-					activeSubmenus = [...activeSubmenus, item.id];
-					activeSubSubmenus[item.id] = activeSubItems;
+			const newActiveSubmenus = new Set<string>();
+			const newActiveSubSubmenus: { [key: string]: string[] } = {};
+
+			siderbarMenuItems.forEach((item) => {
+				if (item.subItems) {
+					const activeSubItems = item.subItems
+						.filter((subItem) => subItem.link && isCurrentPath(subItem.link))
+						.map((subItem) => subItem.id);
+
+					if (activeSubItems.length > 0) {
+						newActiveSubmenus.add(item.id);
+						newActiveSubSubmenus[item.id] = activeSubItems;
+					}
 				}
-			}
-		});
+			});
+
+			activeSubmenus = Array.from(newActiveSubmenus);
+			activeSubSubmenus = newActiveSubSubmenus;
+		}
 	});
 
 	function toggleSubmenu(id: string) {

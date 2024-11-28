@@ -4,12 +4,12 @@ import type { LayoutServerLoad } from '../$types';
 import { getUserPermissions } from '$lib/server/auth.utilities';
 
 export const load: LayoutServerLoad = async ({ locals: { supabase, getSessionAndUser } }) => {
-	const { user, user_role } = await getSessionAndUser();
+	const { user, user_roles } = await getSessionAndUser();
 	if (!user) {
-		redirect(401, '/auth/signin');
+		redirect(302, '/auth/signin');
 	}
 
-	let permissions = await getUserPermissions(supabase, user.id, user_role || '');
+	let permissions = await getUserPermissions(supabase, user.id, user_roles || []);
 
 	const { data: adminMessagesData, error: adminMessagesError } = await supabase.rpc(
 		'get_admin_messages_for_user',

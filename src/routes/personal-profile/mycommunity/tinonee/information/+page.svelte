@@ -23,7 +23,7 @@
 		data.user_profile?.community_tinonee_profile?.other_information_sheet
 	);
 	const informationSheetOptions = $derived(
-		data.optionsData.communityTinoneeOptionsData?.object_names.find(
+		data?.optionsData?.communityTinoneeOptionsData?.object_names.find(
 			(item: { object_name: string }) => item.object_name === 'informationSheetOptions'
 		)?.options
 	);

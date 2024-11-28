@@ -26,7 +26,7 @@
 	let hadUserPostalAddress = $state(data.hadUserPostalAddress);
 
 	const stayInTouchOptions = $derived(
-		data.optionsData.communityMondrookOptionsData?.object_names.find(
+		data?.optionsData?.communityMondrookOptionsData?.object_names.find(
 			(item: { object_name: string }) => item.object_name === 'stayInTouchOptions'
 		)?.options
 	);

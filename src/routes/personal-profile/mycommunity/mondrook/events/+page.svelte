@@ -22,9 +22,10 @@
 		data.user_profile.community_mondrook_profile?.other_community_meeting
 	);
 
-	const communityMeetingOptions = data.optionsData.communityMondrookOptionsData?.object_names.find(
-		(item: { object_name: string }) => item.object_name === 'communityMeetingOptions'
-	)?.options;
+	const communityMeetingOptions =
+		data?.optionsData?.communityMondrookOptionsData?.object_names.find(
+			(item: { object_name: string }) => item.object_name === 'communityMeetingOptions'
+		)?.options;
 
 	function handleReset() {
 		if (confirm('Are you sure you want to undo? All unsaved changes will be lost.')) {

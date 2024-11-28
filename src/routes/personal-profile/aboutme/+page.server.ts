@@ -4,8 +4,9 @@ import { getAboutMeFormData } from '$lib/server/form.utilities';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-	default: async ({ request, locals: { supabase, user } }) => {
-		if (!user) return redirect(401, '/auth/signin');
+	default: async ({ request, locals: { supabase, getSessionAndUser } }) => {
+		const { user } = await getSessionAndUser();
+		if (!user) return redirect(302, '/auth/signin');
 		const formData = await request.formData();
 		const profileAboutMeFormData = getAboutMeFormData(formData);
 		const { error: aboutMeDataError } = await supabase

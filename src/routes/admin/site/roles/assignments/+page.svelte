@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import type { SubmitFunction } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
 	import { Accordion } from '@skeletonlabs/skeleton-svelte';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import RolesTable from '$components/form/tables/RolesTable.svelte';
+	import AutocompleteSingleItemInput from '$components/form/inputs/AutocompleteSingleItemInput.svelte';
+	import AutocompleteSelectWithCurrent from '$components/form/inputs/AutocompleteSelectWithCurrent.svelte';
 
 	interface Role {
 		id: bigint;
@@ -10,12 +13,10 @@
 		role: string;
 		email: string;
 	}
-
 	interface Permission {
 		role: string;
 		permission: string;
 	}
-
 	interface User {
 		id: string;
 		email: string;
@@ -29,13 +30,23 @@
 		};
 	}>();
 
-	let selectedRole = $state('');
-	let selectedUser = $state('');
+	let selectedRole: string = $state('');
+	let selectedUser: string[] = $state([]);
+
+	const usersListData = data.roles.map((role: Role) => ({
+		item_id: role.user_id,
+		lut_text: role.email,
+		current_value: role.role
+	}));
+
+	const rolesListData = [...new Set(data.permissions.map((p: Permission) => p.role))] as string[];
 
 	const handleSubmit: SubmitFunction = () => {
 		return async ({ result }) => {
 			if (result.type === 'success') {
 				await invalidateAll();
+				selectedRole = '';
+				selectedUser = [];
 			}
 		};
 	};
@@ -43,58 +54,49 @@
 	const value = $state(['']);
 </script>
 
-<Accordion spaceY="space-y-1" {value} collapsible>
+<Accordion spaceY="space-y-1" {value} collapsible={true}>
 	<Accordion.Item value="0" classes="bg-orange-100 font-medium">
 		{#snippet control()}Current Role Assignments{/snippet}
 		{#snippet panel()}
-			<table class="w-full">
-				<thead>
-					<tr>
-						<th>User</th>
-						<th>Role</th>
-						<th>Actions</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each data.roles as role}
-						<tr>
-							<td>{role.email}</td>
-							<td>{role.role}</td>
-							<td>
-								<form method="POST" action="?/removeRole" use:enhance={handleSubmit}>
-									<input type="hidden" name="roleId" value={role.id} />
-									<button type="submit" class="text-red-600 hover:text-red-800">Remove</button>
-								</form>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+			<RolesTable {data} />
 		{/snippet}
 	</Accordion.Item>
+
 	<Accordion.Item value="1" classes="bg-orange-100 font-medium">
 		{#snippet control()}Assign New Role{/snippet}
 		{#snippet panel()}
 			<form method="POST" action="?/assignRole" use:enhance={handleSubmit} class="space-y-4">
+				<input
+					type="hidden"
+					name="userId"
+					value={selectedUser.length > 0 ? selectedUser[0] : ''}
+					required
+				/>
+				<input type="hidden" name="role" value={selectedRole} required />
 				<div>
-					<label for="userId">User</label>
-					<select name="userId" bind:value={selectedUser} required>
-						<option value="">Select User</option>
-						{#each data.users as user}
-							<option value={user.id}>{user.email}</option>
-						{/each}
-					</select>
+					<label for="userId">User to Change</label>
+					<AutocompleteSelectWithCurrent
+						listData={usersListData}
+						placeholder="Select User"
+						bind:selectedValues={selectedUser}
+					/>
 				</div>
 				<div>
-					<label for="role">Role</label>
-					<select name="role" bind:value={selectedRole} required>
-						<option value="">Select Role</option>
-						{#each [...new Set(data.permissions.map((p: Permission) => p.role))] as role}
-							<option value={role}>{role}</option>
-						{/each}
-					</select>
+					<label for="role">Role to Assign</label>
+					<AutocompleteSingleItemInput
+						listData={rolesListData}
+						placeholder="Select Role"
+						bind:selectedValue={selectedRole}
+					/>
 				</div>
-				<button type="submit" class="btn-primary btn">Assign Role</button>
+				<div class="flex justify-end">
+					<button
+						type="submit"
+						class="mt-4 rounded-full bg-tertiary-400 px-6 py-2 text-center text-base hover:bg-orange-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+						disabled={!(selectedUser && selectedRole)}
+						>Assign Role
+					</button>
+				</div>
 			</form>
 		{/snippet}
 	</Accordion.Item>

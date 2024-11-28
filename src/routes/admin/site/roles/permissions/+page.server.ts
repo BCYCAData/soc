@@ -10,15 +10,15 @@ async function validateUserPermissions(
 	getSessionAndUser: () => Promise<any>,
 	requiredPermission: string
 ) {
-	const { user, user_role } = await getSessionAndUser();
-	if (!user || !user_role) {
+	const { user, user_roles } = await getSessionAndUser();
+	if (!user || !user_roles) {
 		throw error(401, 'Unauthorized access');
 	}
-	const permissions = await getUserPermissions(supabase, user.id, user_role);
+	const permissions = await getUserPermissions(supabase, user.id, user_roles);
 	if (!permissions.includes(requiredPermission)) {
 		throw error(403, 'Insufficient permissions');
 	}
-	return { user, user_role, permissions };
+	return { user, user_roles, permissions };
 }
 
 export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUser } }) => {
@@ -49,7 +49,6 @@ export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUs
 		});
 		return acc;
 	}, {});
-
 	return {
 		rolePermissions,
 		userRoles,
@@ -64,6 +63,16 @@ export const actions: Actions = {
 		const role = formData.get('role')?.toString();
 		const permissions = formData.get('permissions')?.toString();
 
+		// First update the app_role enum type
+		const { error: enumError } = await supabase.rpc('add_role_to_enum', {
+			new_role: role
+		});
+
+		if (enumError) {
+			throw error(400, 'Failed to update role enum type');
+		}
+
+		// Then insert into role_permissions
 		const { error: insertError } = await supabase
 			.from('role_permissions')
 			.insert({ role, permission: permissions });
@@ -71,6 +80,7 @@ export const actions: Actions = {
 		if (insertError) {
 			throw error(400, 'Failed to add role');
 		}
+
 		return { success: true };
 	},
 
@@ -94,8 +104,8 @@ export const actions: Actions = {
 		await validateUserPermissions(supabase, getSessionAndUser, REQUIRED_PERMISSION);
 		const formData = await request.formData();
 		const role = formData.get('role')?.toString();
-		const permissions = formData.get('permissions')?.toString();
-
+		const permissions = formData.getAll('permissions').join(',');
+		console.log('permissions', permissions);
 		const { error: updateError } = await supabase
 			.from('role_permissions')
 			.update({ permission: permissions })

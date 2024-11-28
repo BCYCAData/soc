@@ -1,9 +1,10 @@
 import { redirect, type Actions } from '@sveltejs/kit';
 
 export const actions: Actions = {
-	changeEmail: async ({ request, locals: { supabase, user } }) => {
+	changeEmail: async ({ request, locals: { supabase, getSessionAndUser } }) => {
+		const { user } = await getSessionAndUser();
 		if (!user) {
-			redirect(401, '/auth/signin');
+			redirect(302, '/auth/signin');
 		}
 		const formData = await request.formData();
 		const { error: changeEmailError } = await supabase.auth.updateUser({

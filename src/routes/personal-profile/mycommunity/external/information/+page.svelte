@@ -22,9 +22,10 @@
 		data.user_profile.community_external_profile?.other_information_sheet
 	);
 
-	const informationSheetOptions = data.optionsData.communityExternalOptionsData?.object_names.find(
-		(item: { object_name: string }) => item.object_name === 'informationSheetOptions'
-	)?.options;
+	const informationSheetOptions =
+		data?.optionsData?.communityExternalOptionsData?.object_names.find(
+			(item: { object_name: string }) => item.object_name === 'informationSheetOptions'
+		)?.options;
 
 	function handleReset() {
 		if (confirm('Are you sure you want to undo? All unsaved changes will be lost.')) {

@@ -83,28 +83,6 @@
 		table?.deselectRow();
 	}
 
-	// export function downloadSelected() {
-	// 	const originalColumns = [...table.getColumnDefinitions()];
-
-	// 	table.updateColumnDefinition('scope', {
-	// 		title: 'Scope',
-	// 		field: 'scope',
-	// 		formatter: (cell) => {
-	// 			const scope = cell.getValue();
-	// 			if (!scope) return 'All Users';
-	// 			return Object.values(scope).join(', ');
-	// 		},
-	// 		download: true
-	// 	});
-
-	// 	table.download('csv', `${downloadFileName}_${getTimestamp()}.csv`, {
-	// 		delimiter: ',',
-	// 		bom: true
-	// 	});
-
-	// 	table.setColumns(originalColumns);
-	// }
-
 	export function downloadSelected() {
 		// Get selected data and transform it
 		const downloadData = table.getSelectedData().map((row) => ({

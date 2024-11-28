@@ -2,9 +2,10 @@ import { redirect, type Actions } from '@sveltejs/kit';
 import { getMyPlaceAssetsFormData } from '$lib/server/form.utilities';
 
 export const actions: Actions = {
-	default: async ({ request, locals: { supabase, user } }) => {
+	default: async ({ request, locals: { supabase, getSessionAndUser } }) => {
+		const { user } = await getSessionAndUser();
 		if (!user) {
-			redirect(401, '/auth/signin');
+			redirect(302, '/auth/signin');
 		}
 		const formData = await request.formData();
 		const pid = formData.get('property_key') as string;

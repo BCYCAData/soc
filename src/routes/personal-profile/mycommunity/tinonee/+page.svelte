@@ -25,7 +25,7 @@
 	let hadUserPostalAddress = $state(data.hadUserPostalAddress);
 
 	const stayInTouchOptions = $derived(
-		data.optionsData.communityTinoneeOptionsData?.object_names.find(
+		data?.optionsData?.communityTinoneeOptionsData?.object_names.find(
 			(item: { object_name: string }) => item.object_name === 'stayInTouchOptions'
 		)?.options
 	);

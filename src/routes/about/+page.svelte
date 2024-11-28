@@ -13,6 +13,8 @@
 
 	let { data }: Props = $props();
 
+	console.log('addressPoints:', data.projectAddressPointData);
+
 	// List of tab items with labels, values and assigned components
 	let items = [
 		{ label: 'SOC Project', value: 1, component: ProjectTab, props: data.projectAddressPointData },

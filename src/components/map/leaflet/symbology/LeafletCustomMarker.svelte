@@ -1,5 +1,5 @@
 <script lang="ts">
-	import L from 'leaflet';
+	import type L from 'leaflet';
 
 	interface Props {
 		markerShape?:
@@ -11,7 +11,6 @@
 			| 'triangle-down'
 			| 'wye'
 			| 'diamond'
-			| 'star'
 			| 'concentric-circle'
 			| 'concentric-square'
 			| 'concentric-triangle'
@@ -38,19 +37,13 @@
 		children
 	}: Props = $props();
 
-	function createMarkerIcon() {
-		const svg = `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      ${shapeToSVG(markerShape, size, fillColour, strokeColour, strokeWidth, strokeOpacity, fillOpacity)}
-    </svg>
-  `;
-
-		return L.divIcon({
-			html: svg,
-			className: 'custom-marker',
-			iconSize: [size, size],
-			iconAnchor: anchor
-		});
+	function createMarkerIcon(): string {
+		return `
+        <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" 
+             xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            ${shapeToSVG(markerShape, size, fillColour, strokeColour, strokeWidth, strokeOpacity, fillOpacity)}
+        </svg>
+    `;
 	}
 
 	function shapeToSVG(
@@ -61,7 +54,7 @@
 		strokeWidth: number,
 		strokeOpacity: number,
 		fillOpacity: number
-	) {
+	): string {
 		const halfSize = size / 2;
 		const commonAttributes = `fill="${fillColour}" fill-opacity="${fillOpacity}" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}"`;
 
@@ -84,30 +77,29 @@
 				return `<polygon points="${halfSize},0 ${size},${halfSize} ${halfSize},${size} 0,${halfSize}" ${commonAttributes} />`;
 			case 'concentric-circle':
 				return `
-        <circle cx="${halfSize}" cy="${halfSize}" r="${halfSize}" ${commonAttributes} />
-        <circle cx="${halfSize}" cy="${halfSize}" r="${halfSize * 0.6}" fill="none" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />
-      `;
+                    <circle cx="${halfSize}" cy="${halfSize}" r="${halfSize}" ${commonAttributes} />
+                    <circle cx="${halfSize}" cy="${halfSize}" r="${halfSize * 0.6}" fill="none" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />
+                `;
 			case 'concentric-square':
 				return `
-        <rect width="${size}" height="${size}" ${commonAttributes} />
-        <rect x="${size * 0.2}" y="${size * 0.2}" width="${size * 0.6}" height="${size * 0.6}" fill="none" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />
-      `;
+                    <rect width="${size}" height="${size}" ${commonAttributes} />
+                    <rect x="${size * 0.2}" y="${size * 0.2}" width="${size * 0.6}" height="${size * 0.6}" fill="none" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />
+                `;
 			case 'concentric-triangle':
 				return `
-        <polygon points="${halfSize},0 ${size},${size} 0,${size}" ${commonAttributes} />
-        <polygon points="${halfSize},${size * 0.3} ${size * 0.8},${size * 0.8} ${size * 0.2},${size * 0.8}" fill="none" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />
-      `;
+                    <polygon points="${halfSize},0 ${size},${size} 0,${size}" ${commonAttributes} />
+                    <polygon points="${halfSize},${size * 0.3} ${size * 0.8},${size * 0.8} ${size * 0.2},${size * 0.8}" fill="none" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />
+                `;
 			case 'concentric-diamond':
 				return `
-        <polygon points="${halfSize},0 ${size},${halfSize} ${halfSize},${size} 0,${halfSize}" ${commonAttributes} />
-        <polygon points="${halfSize},${size * 0.2} ${size * 0.8},${halfSize} ${halfSize},${size * 0.8} ${size * 0.2},${halfSize}" fill="none" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />
-      `;
+                    <polygon points="${halfSize},0 ${size},${halfSize} ${halfSize},${size} 0,${halfSize}" ${commonAttributes} />
+                    <polygon points="${halfSize},${size * 0.2} ${size * 0.8},${halfSize} ${halfSize},${size * 0.8} ${size * 0.2},${halfSize}" fill="none" stroke="${strokeColour}" stroke-width="${strokeWidth}" stroke-opacity="${strokeOpacity}" />
+                `;
 			default:
-				return `<circle cx="${halfSize}" cy="${halfSize}" r="${halfSize}" ${commonAttributes} />`; // Default to circle
+				return `<circle cx="${halfSize}" cy="${halfSize}" r="${halfSize}" ${commonAttributes} />`;
 		}
 	}
 
-	// Helper function to create star points
 	function createStarPoints(
 		points: number,
 		centerX: number,
@@ -126,7 +118,6 @@
 		return starPoints.trim();
 	}
 
-	// Helper function to create wye points
 	function createWyePoints(size: number, halfSize: number): string {
 		const thirdSize = size / 3;
 		return `${halfSize},0 ${halfSize},${thirdSize} ${size},${thirdSize} ${size},${2 * thirdSize} ${halfSize},${2 * thirdSize} ${halfSize},${size} 0,${size} 0,${2 * thirdSize} ${halfSize},${2 * thirdSize} ${halfSize},${thirdSize} 0,${thirdSize} 0,0`;
@@ -134,11 +125,16 @@
 </script>
 
 {#if markerShape === 'text'}
-	<div class="text-marker" style="fillColour: {fillColour}; font-size: {size}px;">
+	<div
+		class="text-marker"
+		style:color={fillColour}
+		style:font-size="{size}px"
+		style:opacity={fillOpacity}
+	>
 		{@render children?.()}
 	</div>
 {:else}
-	{@html createMarkerIcon().options.html}
+	{@html createMarkerIcon()}
 {/if}
 
 <style>
@@ -148,5 +144,6 @@
 		justify-content: center;
 		width: 100%;
 		height: 100%;
+		font-family: inherit;
 	}
 </style>

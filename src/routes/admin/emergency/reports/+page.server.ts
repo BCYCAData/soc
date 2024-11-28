@@ -6,7 +6,7 @@ import { getUserPermissions } from '$lib/server/auth.utilities';
 export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUser }, parent }) => {
 	const { user } = await getSessionAndUser();
 	if (!user) {
-		redirect(401, '/auth/signin');
+		redirect(302, '/auth/signin');
 	}
 	const parentData = await parent();
 	if (!parentData.permissions.includes('admin.emergency.reports')) {
@@ -29,11 +29,11 @@ export const load: PageServerLoad = async ({ locals: { supabase, getSessionAndUs
 
 export const actions: Actions = {
 	generateStreetReport: async ({ request, locals: { supabase, getSessionAndUser } }) => {
-		const { user, user_role } = await getSessionAndUser();
-		if (!user || !user_role) {
+		const { user, user_roles } = await getSessionAndUser();
+		if (!user || !user_roles) {
 			return { success: false, error: 'Unauthorized' };
 		}
-		const permissions = await getUserPermissions(supabase, user.id, user_role);
+		const permissions = await getUserPermissions(supabase, user.id, user_roles);
 		if (!permissions.includes('admin.users')) {
 			return { success: false, error: 'Forbidden' };
 		}

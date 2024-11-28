@@ -3,28 +3,7 @@
 	import L from 'leaflet';
 	import { LeafletLegendControlClass } from '$lib/leaflet/leafletlegendcontrol';
 	import type { Writable } from 'svelte/store';
-
-	interface LegendItem {
-		symbol: string;
-		description: string;
-	}
-
-	interface GroupedLegendItem {
-		groupName: string;
-		items: LegendItem[];
-	}
-
-	interface LegendInfo {
-		items: (LegendItem | GroupedLegendItem)[];
-	}
-
-	interface LayerInfo {
-		layer: L.Layer;
-		visible: boolean;
-		editable: boolean;
-		showInLegend: boolean;
-		legendInfo: LegendInfo;
-	}
+	import type { LegendItem, GroupedLegendItem, LegendInfo, LayerInfo } from '$lib/leaflet/types';
 
 	interface Props {
 		position?: L.ControlPosition;
@@ -69,7 +48,6 @@
 	function updateLegend(name: string, legendInfo: LegendInfo, visible: boolean) {
 		legendInfo.items.forEach((item) => {
 			if ('groupName' in item) {
-				// It's a GroupedLegendItem
 				const groupElement = document.createElement('div');
 				groupElement.className = 'legend-group';
 				const groupTitle = document.createElement('h4');
@@ -83,15 +61,10 @@
 
 				customControl.addLegendContent(name, groupElement);
 			} else {
-				// It's a LegendItem
 				const itemElement = createLegendItemElement(item, visible);
 				customControl.addLegendContent(name, itemElement);
 			}
 		});
-	}
-	interface LegendItem {
-		symbol: string;
-		description: string;
 	}
 
 	function createLegendItemElement(
@@ -102,23 +75,23 @@
 		const itemElement = document.createElement('div');
 		itemElement.className = 'legend-item';
 		itemElement.style.cssText = `
-				opacity: ${visible ? '1' : '0.5'};
-				display: flex;
-				align-items: center;
-				margin-bottom: ${verticalSpacing}px;
-				padding: ${verticalSpacing / 2}px 0;
-			`;
+                opacity: ${visible ? '1' : '0.5'};
+                display: flex;
+                align-items: center;
+                margin-bottom: ${verticalSpacing}px;
+                padding: ${verticalSpacing / 2}px 0;
+            `;
 
 		const symbolContainer = document.createElement('div');
 		symbolContainer.className = 'symbol-container';
 		symbolContainer.style.cssText = `
-			width: 30px;
-			height: 20px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			margin-right: 10px;
-		`;
+            width: 30px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+        `;
 
 		const symbolElement = document.createElement('span');
 		symbolElement.className = 'legend-symbol';
@@ -137,14 +110,12 @@
 		return itemElement;
 	}
 
-	// Function to create multiple legend items with custom spacing
 	function createLegendItems(items: LegendItem[], verticalSpacing: number = 0): DocumentFragment {
 		const fragment = document.createDocumentFragment();
 
 		items.forEach((item, index) => {
 			const itemElement = createLegendItemElement(item, true, verticalSpacing);
 
-			// Remove margin-bottom from the last item
 			if (index === items.length - 1) {
 				itemElement.style.marginBottom = '0';
 			}
@@ -154,28 +125,6 @@
 
 		return fragment;
 	}
-
-	// function createLegendItemElement(item: LegendItem, visible: boolean): HTMLElement {
-	// 	const itemElement = document.createElement('div');
-	// 	itemElement.className = 'legend-item';
-	// 	itemElement.style.opacity = visible ? '1' : '0.5';
-	// 	itemElement.style.display = 'flex';
-	// 	itemElement.style.alignItems = 'center';
-
-	// 	const symbolElement = document.createElement('span');
-	// 	symbolElement.className = 'legend-symbol';
-	// 	symbolElement.innerHTML = item.symbol;
-	// 	symbolElement.style.marginRight = '5px';
-
-	// 	const descriptionElement = document.createElement('span');
-	// 	descriptionElement.className = 'legend-description';
-	// 	descriptionElement.textContent = item.description;
-
-	// 	itemElement.appendChild(symbolElement);
-	// 	itemElement.appendChild(descriptionElement);
-
-	// 	return itemElement;
-	// }
 
 	onDestroy(() => {
 		if (leafletMap && customControl) {

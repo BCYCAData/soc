@@ -111,9 +111,9 @@
 	<title>BCYCA Admin-Workshops</title>
 </svelte:head>
 
-<Accordion {value} spaceY="space-y-1">
+<Accordion {value} collapsible={true} spaceY="space-y-1">
 	{#each workshopItems as item}
-		<Accordion.Item value={item.id}>
+		<Accordion.Item controlClasses="bg-amber-100 font-medium" value={item.id}>
 			{#snippet control()}{item.summary}{/snippet}
 			{#snippet panel()}
 				<div class="table-container" id={item.id}>
@@ -128,7 +128,7 @@
 		</Accordion.Item>
 	{/each}
 
-	<Accordion.Item value="OtherWorkshopSuggestions">
+	<Accordion.Item controlClasses="bg-amber-100 font-medium" value="OtherWorkshopSuggestions">
 		{#snippet control()}{'Other Workshop Suggestions'}{/snippet}
 		{#snippet panel()}"
 			<div class="table-container" id="OtherWorkshopSuggestions">
@@ -142,7 +142,7 @@
 		{/snippet}
 	</Accordion.Item>
 
-	<Accordion.Item value="WillRunWorkshops">
+	<Accordion.Item controlClasses="bg-amber-100 font-medium" value="WillRunWorkshops">
 		{#snippet control()}{'Will Run Workshops'}{/snippet}
 		{#snippet panel()}"
 			<div class="table-container" id="WillRunWorkshops">

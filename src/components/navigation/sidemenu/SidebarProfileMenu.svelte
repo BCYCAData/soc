@@ -20,32 +20,45 @@
 
 	let activeSubSubmenus: { [key: string]: string[] } = $state({});
 
+	// Initialize state tracking outside of the effect
+	let currentPath = $state($page.url.pathname);
+
+	// Update effect to run only when the path changes
 	$effect(() => {
-		siderbarMenuItems.forEach((item) => {
-			if (item.subItems) {
-				const activeSubItems = item.subItems
-					.filter((subItem) => subItem.link && isCurrentPath(subItem.link))
-					.map((subItem) => subItem.id);
+		if (currentPath !== $page.url.pathname) {
+			currentPath = $page.url.pathname;
 
-				if (activeSubItems.length > 0) {
-					activeSubmenus = [...activeSubmenus, item.id];
-					activeSubSubmenus[item.id] = activeSubItems;
+			const newActiveSubmenus = new Set<string>();
+			const newActiveSubSubmenus: { [key: string]: string[] } = {};
 
-					// Handle nested sub-items
-					item.subItems.forEach((subItem) => {
-						if (subItem.subItems) {
-							const activeNestedItems = subItem.subItems
-								.filter((nestedItem) => nestedItem.link && isCurrentPath(nestedItem.link))
-								.map((nestedItem) => nestedItem.id);
+			siderbarMenuItems.forEach((item) => {
+				if (item.subItems) {
+					const activeSubItems = item.subItems
+						.filter((subItem) => subItem.link && isCurrentPath(subItem.link))
+						.map((subItem) => subItem.id);
 
-							if (activeNestedItems.length > 0) {
-								activeSubSubmenus[item.id] = [...(activeSubSubmenus[item.id] || []), subItem.id];
+					if (activeSubItems.length > 0) {
+						newActiveSubmenus.add(item.id);
+						newActiveSubSubmenus[item.id] = activeSubItems;
+
+						item.subItems.forEach((subItem) => {
+							if (subItem.subItems) {
+								const activeNestedItems = subItem.subItems
+									.filter((nestedItem) => nestedItem.link && isCurrentPath(nestedItem.link))
+									.map((nestedItem) => nestedItem.id);
+
+								if (activeNestedItems.length > 0) {
+									newActiveSubSubmenus[item.id] = [...activeSubItems, subItem.id];
+								}
 							}
-						}
-					});
+						});
+					}
 				}
-			}
-		});
+			});
+
+			activeSubmenus = Array.from(newActiveSubmenus);
+			activeSubSubmenus = newActiveSubSubmenus;
+		}
 	});
 
 	function toggleSubmenu(id: string) {

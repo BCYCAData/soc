@@ -1,29 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-
-	type MarkerShape =
-		| 'text'
-		| 'circle'
-		| 'square'
-		| 'star'
-		| 'triangle'
-		| 'triangle-down'
-		| 'wye'
-		| 'diamond'
-		| 'concentric-circle'
-		| 'concentric-square'
-		| 'concentric-triangle'
-		| 'concentric-diamond';
-
-	interface MarkerOptions {
-		markerShape?: MarkerShape;
-		fillColour?: string;
-		fillOpacity?: number;
-		size?: number;
-		strokeColour?: string;
-		strokeOpacity?: number;
-		strokeWidth?: number;
-	}
+	import type { PointSymbologyOptions } from '$lib/leaflet/types';
 
 	interface PolygonOptions extends L.PathOptions {
 		fillColour?: string;
@@ -66,7 +43,7 @@
 
 	const mapConfig = {
 		centre: propertyGeometryData.centre as [number, number],
-		bounds: propertyGeometryData.bounds as [[number, number], [number, number]],
+		initialExtent: propertyGeometryData.bounds as [[number, number], [number, number]],
 		minZoom: undefined,
 		maxZoom: undefined,
 		zoomable: true,
@@ -80,24 +57,32 @@
 		baseLayers: baseLayers
 	};
 
-	const addresspointOptions: MarkerOptions = {
-		markerShape: 'diamond',
-		fillColour: '#f97316',
-		size: 12,
-		strokeColour: '#000',
-		strokeWidth: 0,
-		strokeOpacity: 1,
-		fillOpacity: 0.8
+	const addresspointOptions: PointSymbologyOptions = {
+		type: 'custom',
+		options: {
+			markerShape: 'diamond',
+			fillColour: '#f97316',
+			size: 12,
+			strokeColour: '#000',
+			strokeWidth: 0,
+			strokeOpacity: 1,
+			fillOpacity: 0.8
+		}
 	};
-	const waypointOptions: MarkerOptions = {
-		markerShape: 'diamond',
-		fillColour: '#a5a5a5',
-		size: 12,
-		strokeColour: '#000',
-		strokeWidth: 0,
-		strokeOpacity: 1,
-		fillOpacity: 0.8
+
+	const waypointOptions: PointSymbologyOptions = {
+		type: 'custom',
+		options: {
+			markerShape: 'diamond',
+			fillColour: '#a5a5a5',
+			size: 12,
+			strokeColour: '#000',
+			strokeWidth: 0,
+			strokeOpacity: 1,
+			fillOpacity: 0.8
+		}
 	};
+
 	const propertyOptions: PolygonOptions = {
 		fillColor: '#3388ff',
 		fillOpacity: 0.7,
@@ -106,6 +91,7 @@
 		weight: 1,
 		opacity: 1
 	};
+
 	const boundaryyOptions: L.PathOptions = {
 		color: 'green',
 		weight: 1,
@@ -127,17 +113,6 @@
 					polygonOptions={propertyOptions}
 				/>
 			{/await}
-			<!-- {#await import('$components/map/leaflet/layers/geojson/LeafletGeoJSONLineLayer.svelte') then { default: LeafletGeoJSONLineLayer }}
-				<LeafletGeoJSONLineLayer
-					geojsonData={propertyGeometryData.property}
-					layerName="Property Boundary Layer"
-					visible={true}
-					editable={false}
-					staticLayer={false}
-					showInLegend={true}
-					lineOptions={boundaryyOptions}
-				/>
-			{/await} -->
 			{#await import('$components/map/leaflet/layers/geojson/LeafletGeoJSONPointLayer.svelte') then { default: LeafletGeoJSONPointLayer }}
 				<LeafletGeoJSONPointLayer
 					geojsonData={propertyGeometryData.address_point}
@@ -146,7 +121,7 @@
 					editable={false}
 					staticLayer={false}
 					showInLegend={true}
-					markerOptions={addresspointOptions}
+					symbology={addresspointOptions}
 				/>
 				<LeafletGeoJSONPointLayer
 					geojsonData={propertyGeometryData.way_point}
@@ -155,7 +130,7 @@
 					editable={false}
 					staticLayer={false}
 					showInLegend={true}
-					markerOptions={waypointOptions}
+					symbology={waypointOptions}
 				/>
 			{/await}
 			{#await import('$components/map/leaflet/controls/LeafletScaleControl.svelte') then { default: LeafletScaleControl }}

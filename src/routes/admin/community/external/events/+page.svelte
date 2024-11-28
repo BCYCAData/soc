@@ -147,9 +147,9 @@
 </svelte:head>
 
 <div>
-	<Accordion {value} spaceY="space-y-1">
+	<Accordion {value} collapsible={true} spaceY="space-y-1">
 		{#each accordionItems as item}
-			<Accordion.Item value={item.id}>
+			<Accordion.Item controlClasses="bg-amber-100 font-medium" value={item.id}>
 				{#snippet control()}{item.summary}{/snippet}
 				{#snippet panel()}
 					<div class="table-container" id={item.id}>

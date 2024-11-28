@@ -121,7 +121,7 @@
 
 	{#snippet content()}
 		<Tabs.Panel value="add_messages">
-			<Accordion spaceY="space-y-1">
+			<Accordion collapsible={true} spaceY="space-y-1">
 				<Accordion.Item value="0" classes="bg-orange-100 font-medium">
 					{#snippet control()}All Users{/snippet}
 					{#snippet panel()}
